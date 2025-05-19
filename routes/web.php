@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        // 'canLogin' => Route::has('login'),
+        // 'canRegister' => Route::has('register'),
+        // 'laravelVersion' => Application::VERSION,
+        // 'phpVersion' => PHP_VERSION,
+    ]);
+});
+
+Route::get('/login', function () {
+    return Inertia::render('Auth/LoginMaster');
+})->name('login');
+
+Route::prefix('/dashboard')->name('dashboard.')->group(function () {
+    Route::get('/', fn () => Inertia::render('Dashboard/Show', ['url' => 'dashboard']))->name('dashboard');
+    Route::get('/user', fn () => Inertia::render('User/Show', ['url' => 'user']))->name('user');
+    Route::get('/product', fn () => Inertia::render('Product/Show', ['url' => 'product']))->name('product');
+    Route::get('/category', fn () => Inertia::render('Category/Show', ['url' => 'category']))->name('category');
+    Route::get('/role', fn () => Inertia::render('Role/Show', ['url' => 'role']))->name('role');
+    Route::get('/permission', fn () => Inertia::render('Permission/Show', ['url' => 'permission']))->name('permission');
+    Route::get('/report', fn () => Inertia::render('Report/Show', ['url' => 'report']))->name('report');
+    Route::get('/stock-in', fn () => Inertia::render('StockIn/Show', ['url' => 'stock-in']))->name('stock-in');
+    Route::get('/stock-out', fn () => Inertia::render('StockOut/Show', ['url' => 'stock-out']))->name('stock-out');
+    Route::get('/transaction', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('transaction');
+
+});
+
+// Route::middleware([
+//     'auth:sanctum',
+//     config('jetstream.auth_session'),
+//     'verified',
+// ])->group(function () {
+//     Route::get('/dashboard', function () {
+//         return Inertia::render('Dashboard');
+//     })->name('dashboard');
+// });
