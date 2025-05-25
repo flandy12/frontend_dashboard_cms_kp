@@ -28,6 +28,35 @@ const products = ref([
     available: 'Yes',
     price: '$1999',
     weight: '1.0 lb.',
+    status: 'On Progress',
+    date : '2023-10-01'
+  },
+  // ... tambahkan produk lainnya
+]);
+
+
+const products_2 = ref([
+  {
+    id: 1,
+    name: 'Apple MacBook Pro 17"',
+    color: 'Silver',
+    category: 'Laptop',
+    accessories: 'Yes',
+    available: 'Yes',
+    price: '$2999',
+    weight: '3.0 lb.',
+    status: 'Done',
+    date : '2023-10-01'
+  },
+  {
+    id: 2,
+    name: 'Microsoft Surface Pro',
+    color: 'White',
+    category: 'Laptop PC',
+    accessories: 'No',
+    available: 'Yes',
+    price: '$1999',
+    weight: '1.0 lb.',
     status: 'Done',
     date : '2023-10-01'
   },
@@ -132,7 +161,7 @@ function applyFilters() {
         </div>
       </div>
 
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-10">
         <table
           class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
         >
@@ -144,7 +173,7 @@ function applyFilters() {
               <th class="px-6 py-3">Category</th>
               <th class="px-6 py-3">Accessories</th>
               <th class="px-6 py-3">Available</th>
-              <th class="px-6 py-3">Price</th>
+            
               <th class="px-6 py-3">Status</th>
               <th class="px-6 py-3 text-center">Date</th>
             </tr>
@@ -168,13 +197,61 @@ function applyFilters() {
               <td class="px-6 py-4">{{ product.category }}</td>
               <td class="px-6 py-4">{{ product.accessories }}</td>
               <td class="px-6 py-4">{{ product.available }}</td>
-              <td class="px-6 py-4">{{ product.price }}</td>
+
               <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
               <td class="px-6 py-4">{{ product.date }}</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table
+          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+        >
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
+            <tr>
+              <th class="px-6 py-3">No</th>
+              <th class="px-6 py-3">Product name</th>
+              <th class="px-6 py-3">Color</th>
+              <th class="px-6 py-3">Category</th>
+              <th class="px-6 py-3">Accessories</th>
+              <th class="px-6 py-3">Available</th>
+            
+              <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3 text-center">Date</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-600">
+            <tr
+              v-for="products_2 in filteredProducts"
+              :key="products_2.id"
+              class="bg-white border-b  border-gray-200 hover:bg-gray-50"
+            >
+              <td class="w-4 p-4">
+                {{ products_2.id }}
+              </td>
+              <th
+                class="px-6 py-4 font-medium whitespace-nowrap"
+                scope="row"
+              >
+                {{ products_2.name }}
+              </th>
+              <td class="px-6 py-4">{{ products_2.color }}</td>
+              <td class="px-6 py-4">{{ products_2.category }}</td>
+              <td class="px-6 py-4">{{ products_2.accessories }}</td>
+              <td class="px-6 py-4">{{ products_2.available }}</td>
+
+              <td class="px-6 py-4"><span class="bg-yellow-300 px-3 py-1 rounded-full">{{ products_2.status }}</span></td>
+              <td class="px-6 py-4">{{ products_2.date }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+
+      
 
       <div class="flex flex-col items-center mt-5">
             <!-- Help text -->

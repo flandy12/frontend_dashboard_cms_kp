@@ -35,7 +35,7 @@ console.log(props.url);
 </script>
 
 <template>
-  <div class="flex bg-zinc-100">
+  <div class="flex w-full">
     <aside class="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col justify-between">
       <!-- Top (Brand & Menu) -->
       <div>
@@ -140,12 +140,30 @@ console.log(props.url);
       :active="props.url === 'transaction'"
     />
   </a>
+
+   <!-- <a href="/dashboard/generate-product">
+    <SidebarItem
+      icon="💳"
+      title="Scan Product"
+      to="/logout"
+      :active="props.url === 'generate-product'"
+    />
+  </a> -->
+  
+  <a href="/logout" class="bg-red-300">
+    <SidebarItem
+      icon=""
+      title="Logout"
+      to="/logout"
+      :active="props.url === 'logout'"
+    />
+  </a>
           </div>
         </nav>
       </div>
     </aside>
 
-    <main class="flex-1 p-6">
+    <main class="flex-1 p-6 bg-zinc-100 ">
       <slot />
     </main>
   </div>

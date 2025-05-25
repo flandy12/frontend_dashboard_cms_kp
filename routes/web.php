@@ -28,6 +28,7 @@ Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/stock-in', fn () => Inertia::render('StockIn/Show', ['url' => 'stock-in']))->name('stock-in');
     Route::get('/stock-out', fn () => Inertia::render('StockOut/Show', ['url' => 'stock-out']))->name('stock-out');
     Route::get('/transaction', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('transaction');
+    Route::get('/generate-product', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('generate');
 
 });
 

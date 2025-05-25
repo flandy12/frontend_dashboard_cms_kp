@@ -17,7 +17,7 @@ const products = ref([
     available: 'Yes',
     price: '$2999',
     weight: '3.0 lb.',
-    status: 'In Stock',
+    status: 'Stock Out',
     date: '2023-10-01',
   },
   {
@@ -29,7 +29,7 @@ const products = ref([
     available: 'Yes',
     price: '$1999',
     weight: '1.0 lb.',
-    status: 'In Stock',
+    status: 'Stock Out',
     date: '2023-10-01',
   },
   // ... tambahkan produk lainnya
@@ -146,7 +146,6 @@ function applyFilters() {
               <th class="px-6 py-3">Category</th>
               <th class="px-6 py-3">Accessories</th>
               <th class="px-6 py-3">Available</th>
-              <th class="px-6 py-3">Price</th>
               <th class="px-6 py-3">Status</th>
               <th class="px-6 py-3 text-center">Date</th>
             </tr>
@@ -170,8 +169,7 @@ function applyFilters() {
               <td class="px-6 py-4">{{ product.category }}</td>
               <td class="px-6 py-4">{{ product.accessories }}</td>
               <td class="px-6 py-4">{{ product.available }}</td>
-              <td class="px-6 py-4">{{ product.price }}</td>
-              <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
+              <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
               <td class="px-6 py-4">{{ product.date }}</td>
             </tr>
           </tbody>
