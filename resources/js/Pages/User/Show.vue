@@ -1,36 +1,53 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import Modal from "@Components/Modal.vue";
 import { getUsers, postUsers } from "../API/users/apiUsers";
+
 const users = ref([]);
-
-onMounted(async () => {
-    try {
-        const res = await getUsers();
-        users.value = res;
-    } catch (err) {
-        console.log("Gagal mengambil users", err);
-    }
+const currentUsers = reactive({
+    name: "",
+    email: "",
+    password: "",
 });
-
+const isModalOpen = ref(false);
 const props = defineProps({
     url: String,
 });
 
-const isModalOpen = ref(false);
 function openNewProductModal() {
     isModalOpen.value = true;
 }
 
-function closeModal() {
-    isModalOpen.value = false;
-}
+const onSubmit = async () => {
+    const formData = {
+        ...currentUsers,
+    };
+    try {
+        await postUsers(formData);
+        console.log(formData);
+        isModalOpen.value = false;
 
-function applyFilters() {
-    // Add your filter logic here
-    console.log("Filter button clicked");
-}
+        fetchUser();
+    } catch (err) {
+        console.log("Gagal menyimpan users", err);
+    }
+};
+
+const fetchUser = async () => {
+    try {
+        const res = await getUsers();
+        users.value = res.data;
+
+        console.log(res.data);
+    } catch (err) {
+        console.log("Gagal mengambil users", err);
+    }
+};
+
+onMounted(() => {
+    fetchUser();
+});
 </script>
 <template>
     <MasterLayout :url="props.url">
@@ -234,7 +251,7 @@ function applyFilters() {
                         </div>
                         <!-- Modal body -->
                         <div class="p-4 md:p-5 space-y-4">
-                            <form class="mx-auto" @submit.prevent="createSub">
+                            <form class="mx-auto" @submit.prevent="onSubmit">
                                 <div class="mb-5">
                                     <label
                                         for="default-input"
@@ -246,6 +263,7 @@ function applyFilters() {
                                     <input
                                         type="text"
                                         id="default-input"
+                                        v-model="currentUsers.name"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                     />
                                     <!-- Display sub_title errors -->
@@ -274,6 +292,35 @@ function applyFilters() {
                                     <input
                                         type="text"
                                         id="default-input"
+                                        v-model="currentUsers.email"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    />
+                                    <!-- Display sub_title errors -->
+                                    <ul
+                                        v-if="errors"
+                                        class="text-red-500 text-sm mt-1"
+                                    >
+                                        <li
+                                            v-for="(
+                                                error, index
+                                            ) in errors.link"
+                                        >
+                                            {{ error }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <label
+                                        for="default-input"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                    >
+                                        Password
+                                    </label>
+
+                                    <input
+                                        type="password"
+                                        id="default-input"
+                                        v-model="currentUsers.password"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                     />
                                     <!-- Display sub_title errors -->

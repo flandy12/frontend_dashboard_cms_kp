@@ -5,7 +5,7 @@ export const getUsers = async () => {
     return res;
 };
 
-export const postUsers = async () => {
-    const res = await api.post("/users");
-    return res.data;
+export const postUsers = async (data) => {
+    const res = await api.post("/users", data);
+    return res;
 };
