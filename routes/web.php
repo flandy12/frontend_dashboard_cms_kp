@@ -29,6 +29,7 @@ Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/stock-out', fn () => Inertia::render('StockOut/Show', ['url' => 'stock-out']))->name('stock-out');
     Route::get('/transaction', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('transaction');
     Route::get('/generate-product', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('generate');
+    Route::get('/role-permission', fn () => Inertia::render('AssignRolePermission/Show', ['url' => 'role-permission']))->name('role-permission');
 
 });
 

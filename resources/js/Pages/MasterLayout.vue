@@ -87,6 +87,16 @@ console.log(props.url);
     />
   </a>
 
+
+  <a href="/dashboard/role-permission">
+    <SidebarItem
+      icon="💳"
+      title="Assign Role & Permission"
+      to="/dashboard/role-permission"
+      :active="props.url === 'role-permission'"
+    />
+  </a>
+
   <a href="/dashboard/role">
     <SidebarItem
       icon="👤"
@@ -141,6 +151,7 @@ console.log(props.url);
     />
   </a>
 
+
    <!-- <a href="/dashboard/generate-product">
     <SidebarItem
       icon="💳"
@@ -163,7 +174,7 @@ console.log(props.url);
       </div>
     </aside>
 
-    <main class="flex-1 p-6 bg-zinc-100 ">
+    <main class="flex-1 p-6 bg-zinc-100  overflow-hidden">
       <slot />
     </main>
   </div>

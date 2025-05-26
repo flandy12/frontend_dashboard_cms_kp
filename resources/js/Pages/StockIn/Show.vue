@@ -2,10 +2,11 @@
 import { ref, computed } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@Components/Modal.vue';
-  
-  const props = defineProps({ 
+
+const props = defineProps({
   url: String,
-  });
+});
+
 const products = ref([
   {
     id: 1,
@@ -16,8 +17,8 @@ const products = ref([
     available: 'Yes',
     price: '$2999',
     weight: '3.0 lb.',
-    status: 'Done',
-    date : '2023-10-01'
+    status: 'Stock Out',
+    date: '2023-10-01',
   },
   {
     id: 2,
@@ -28,37 +29,8 @@ const products = ref([
     available: 'Yes',
     price: '$1999',
     weight: '1.0 lb.',
-    status: 'On Progress',
-    date : '2023-10-01'
-  },
-  // ... tambahkan produk lainnya
-]);
-
-
-const products_2 = ref([
-  {
-    id: 1,
-    name: 'Apple MacBook Pro 17"',
-    color: 'Silver',
-    category: 'Laptop',
-    accessories: 'Yes',
-    available: 'Yes',
-    price: '$2999',
-    weight: '3.0 lb.',
-    status: 'Done',
-    date : '2023-10-01'
-  },
-  {
-    id: 2,
-    name: 'Microsoft Surface Pro',
-    color: 'White',
-    category: 'Laptop PC',
-    accessories: 'No',
-    available: 'Yes',
-    price: '$1999',
-    weight: '1.0 lb.',
-    status: 'Done',
-    date : '2023-10-01'
+    status: 'Stock Out',
+    date: '2023-10-01',
   },
   // ... tambahkan produk lainnya
 ]);
@@ -110,7 +82,7 @@ function applyFilters() {
   <MasterLayout :url="props.url">
     <div class="container mx-auto">
       <div class="flex justify-between mb-5 items-center">
-        <h1 class="text-2xl font-bold">Stock In</h1>
+        <h1 class="text-2xl font-bold">Stock Out</h1>
       </div>
 
       <div class="pb-4 flex justify-between">
@@ -139,16 +111,16 @@ function applyFilters() {
               v-model="searchQuery"
               type="text"
               id="table-search"
-              class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-52 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search for items"
+              class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg  bg-gray-50 focus:ring-blue-500 focus:border-blue-500  w-52"
+              placeholder="Search"
             />
           </div>
         </div>
 
         <div class="mb-4 flex justify-end gap-5">
-          <button
+         <button
             @click="exportCSV"
-            class="border text-black text-sm px-4 py-2 border-gray-800 rounded"
+            class="border text-black text-sm px-4 py-2 rounded border-gray-800"
           >
             Export Table
           </button>
@@ -158,24 +130,23 @@ function applyFilters() {
           >
             Filters
           </button>
+          
         </div>
       </div>
 
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-10">
-        <table
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+         <table
           class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
         >
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
             <tr>
               <th class="px-6 py-3">No</th>
+              <th class="px-6 py-3">User</th>
               <th class="px-6 py-3">Product name</th>
-              <th class="px-6 py-3">Color</th>
-              <th class="px-6 py-3">Category</th>
-              <th class="px-6 py-3">Accessories</th>
-              <th class="px-6 py-3">Available</th>
-            
-              <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3">Qty</th>
+              <th class="px-6 py-3">Note</th>
               <th class="px-6 py-3 text-center">Date</th>
+              <th class="px-6 py-3">Status</th>
             </tr>
           </thead>
           <tbody class="text-gray-600">
@@ -193,66 +164,15 @@ function applyFilters() {
               >
                 {{ product.name }}
               </th>
-              <td class="px-6 py-4">{{ product.color }}</td>
               <td class="px-6 py-4">{{ product.category }}</td>
               <td class="px-6 py-4">{{ product.accessories }}</td>
               <td class="px-6 py-4">{{ product.available }}</td>
-
-              <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
+              <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
               <td class="px-6 py-4">{{ product.date }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table
-          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
-        >
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
-            <tr>
-              <th class="px-6 py-3">No</th>
-              <th class="px-6 py-3">Product name</th>
-              <th class="px-6 py-3">Color</th>
-              <th class="px-6 py-3">Category</th>
-              <th class="px-6 py-3">Accessories</th>
-              <th class="px-6 py-3">Available</th>
-            
-              <th class="px-6 py-3">Status</th>
-              <th class="px-6 py-3 text-center">Date</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-600">
-            <tr
-              v-for="products_2 in filteredProducts"
-              :key="products_2.id"
-              class="bg-white border-b  border-gray-200 hover:bg-gray-50"
-            >
-              <td class="w-4 p-4">
-                {{ products_2.id }}
-              </td>
-              <th
-                class="px-6 py-4 font-medium whitespace-nowrap"
-                scope="row"
-              >
-                {{ products_2.name }}
-              </th>
-              <td class="px-6 py-4">{{ products_2.color }}</td>
-              <td class="px-6 py-4">{{ products_2.category }}</td>
-              <td class="px-6 py-4">{{ products_2.accessories }}</td>
-              <td class="px-6 py-4">{{ products_2.available }}</td>
-
-              <td class="px-6 py-4"><span class="bg-yellow-300 px-3 py-1 rounded-full">{{ products_2.status }}</span></td>
-              <td class="px-6 py-4">{{ products_2.date }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-
-
-      
-
       <div class="flex flex-col items-center mt-5">
             <!-- Help text -->
             <span class="text-sm text-gray-700">
@@ -268,7 +188,7 @@ function applyFilters() {
             </button>
             </div>
         </div>
-
+        
       <Modal :show="isModalOpen" @close="isModalOpen = false">
       
         <!-- Main modal -->

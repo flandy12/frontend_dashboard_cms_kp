@@ -75,7 +75,7 @@ function applyFilters() {
 
 <template>
   <MasterLayout :url="props.url">
-    <div class="container mx-auto">
+    <div class="container mx-auto w-full">
       <div class="flex justify-between mb-5 items-center">
         <h1 class="text-2xl font-bold">Product</h1>
         <button
@@ -130,76 +130,72 @@ function applyFilters() {
         </div>
       </div>
 
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <p class="text-end mb-4">Select All</p>
-        <table
-          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+<div class="relative w-full">
+  <p class="text-end mb-4 pr-4">Select All</p>
+
+  <!-- Scrollable Table Wrapper -->
+  <div class="w-full overflow-x-auto">
+    <table class="min-w-max w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10 border-b">
+        <tr>
+          <th class="p-4">
+            <div class="flex items-center">
+              <input
+                id="checkbox-all-search"
+                type="checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm"
+                @change="e => {
+                  const checked = e.target.checked;
+                  filteredProducts.value.forEach(p => p.checked = checked);
+                }"
+              />
+              <label for="checkbox-all-search" class="sr-only">checkbox</label>
+            </div>
+          </th>
+          <th class="px-6 py-3">Image</th>
+          <th class="px-6 py-3">Category</th>
+          <th class="px-6 py-3">Product Name</th>
+          <th class="px-6 py-3">Color</th>
+          <th class="px-6 py-3">Stock</th>
+          <th class="px-6 py-3">Price</th>
+          <th class="px-6 py-3">Description</th>
+          <th class="px-6 py-3">Action</th>
+        </tr>
+      </thead>
+
+      <tbody class="text-gray-600 bg-zinc-100">
+        <tr
+          v-for="product in filteredProducts"
+          :key="product.id"
+          class="bg-white border-b hover:bg-gray-50"
         >
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
-            <tr>
-              <th class="p-4">
-                <div class="flex items-center">
-                  <input
-                    id="checkbox-all-search"
-                    type="checkbox"
-                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm"
-                    @change="e => {
-                      const checked = e.target.checked;
-                      filteredProducts.value.forEach(p => p.checked = checked);
-                    }"
-                  />
-                  <label for="checkbox-all-search" class="sr-only">checkbox</label>
-                </div>
-              </th>
-              <th class="px-6 py-3">Product name</th>
-              <th class="px-6 py-3">Color</th>
-              <th class="px-6 py-3">Category</th>
-              <th class="px-6 py-3">Accessories</th>
-              <th class="px-6 py-3">Available</th>
-              <th class="px-6 py-3">Price</th>
-              <th class="px-6 py-3">Weight</th>
-              <th class="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-600">
-            <tr
-              v-for="product in filteredProducts"
-              :key="product.id"
-              class="bg-white border-b "
-            >
-              <td class="w-4 p-4">
-                <div class="flex items-center">
-                  <input
-                    type="checkbox"
-                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm"
-                    v-model="product.checked"
-                  />
-                </div>
-              </td>
-              <th
-                class="px-6 py-4 font-medium whitespace-nowrap"
-                scope="row"
-              >
-                {{ product.name }}
-              </th>
-              <td class="px-6 py-4 ">{{ product.color }}</td>
-              <td class="px-6 py-4 ">{{ product.category }}</td>
-              <td class="px-6 py-4 ">{{ product.accessories }}</td>
-              <td class="px-6 py-4 ">{{ product.available }}</td>
-              <td class="px-6 py-4 ">{{ product.price }}</td>
-              <td class="px-6 py-4 ">{{ product.weight }}</td>
-              <td class="flex items-center px-6 py-4">
-                <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                  >Edit</a
-                >
-                <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
-                  >Remove</a
-                >
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <td class="w-4 p-4">
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm"
+                v-model="product.checked"
+              />
+            </div>
+          </td>
+          <td class="px-6 py-4 font-medium whitespace-nowrap">ascsacsa</td>
+          <td class="px-6 py-4">{{ product.category }}</td>
+          <td class="px-6 py-4 font-medium whitespace-nowrap">{{ product.name }}</td>
+          <td class="px-6 py-4">{{ product.color }}</td>
+          <td class="px-6 py-4">{{ product.accessories }}</td>
+          <td class="px-6 py-4">{{ product.price }}</td>
+          <td class="px-6 py-4">{{ product.weight }}</td>
+          <td class="px-6 py-4 flex items-center space-x-3">
+            <a href="#" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Edit</a>
+            <a href="#" class="font-medium text-red-600 hover:underline dark:text-red-500">Remove</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
 
         <div class="flex flex-col items-center mt-5">
             <!-- Help text -->
@@ -351,7 +347,6 @@ function applyFilters() {
                                 </div>
                             </form>
                         </div>
-                       
                     </div>
                 </div>
             </div>
