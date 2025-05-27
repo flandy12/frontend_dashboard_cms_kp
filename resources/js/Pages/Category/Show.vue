@@ -1,7 +1,7 @@
 <script setup>
     import { ref, reactive, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
-    import Modal from '@Components/Modal.vue';
+    import Modal from '@/Components/Modal.vue';
     import { useApiRequest } from '@/Helper/api.js';
     import TablePage from '../Category/Partials/TablePage.vue';
 

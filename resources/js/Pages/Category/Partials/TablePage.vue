@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref, watch } from 'vue';
 import { useApiRequest } from '@/Helper/api.js';
-import Modal from '@Components/Modal.vue';
+import Modal from '@/Components/Modal.vue';
 
 
 // Props

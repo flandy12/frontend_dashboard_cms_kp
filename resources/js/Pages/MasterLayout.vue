@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import SidebarItem from '@Components/SitebarItem.vue';
+import SidebarItem from '@/Components/SitebarItem.vue';
 import { useRoute } from 'vue-router';
 
 const props = defineProps({

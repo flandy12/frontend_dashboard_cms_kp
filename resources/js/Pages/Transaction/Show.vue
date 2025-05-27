@@ -1,7 +1,7 @@
 <script setup>
     import { ref, computed } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
-    import Modal from '@Components/Modal.vue';
+    import Modal from '@/Components/Modal.vue';
 
     const products = ref([
         {
