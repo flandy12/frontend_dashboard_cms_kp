@@ -1,10 +1,15 @@
 <script setup>
+
 import { onMounted, reactive, ref } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import Modal from "@Components/Modal.vue";
 import { getUsers, postUsers } from "../API/users/apiUsers";
+import apiRequest from '../API/main';
 
 const users = ref([]);
+const errors = ref([]);
+
+
 const currentUsers = reactive({
     name: "",
     email: "",
@@ -24,22 +29,27 @@ const onSubmit = async () => {
         ...currentUsers,
     };
     try {
-        await postUsers(formData);
-        console.log(formData);
-        isModalOpen.value = false;
-
-        fetchUser();
+         const response = await apiRequest({
+            url: "users",
+            method: "post",
+            data: formData,
+        });
+        location.reload();
     } catch (err) {
-        console.log("Gagal menyimpan users", err);
+        errors.value = err.response.data.errors;
     }
 };
 
 const fetchUser = async () => {
     try {
-        const res = await getUsers();
-        users.value = res.data;
-
-        console.log(res.data);
+        const response = await apiRequest({
+            url: "users",
+            method: "get"
+        });
+        if (response.status == 200) {
+            users.value = response.data;
+            console.log(response.data);
+        } 
     } catch (err) {
         console.log("Gagal mengambil users", err);
     }
@@ -48,6 +58,7 @@ const fetchUser = async () => {
 onMounted(() => {
     fetchUser();
 });
+
 </script>
 <template>
     <MasterLayout :url="props.url">
@@ -187,7 +198,6 @@ onMounted(() => {
                             </tr>
                         </tbody>
                     </table>
-
                 </div>
             </div>
         </div>
@@ -275,15 +285,15 @@ onMounted(() => {
                                     >
                                         <li
                                             v-for="(
-                                                error, index
-                                            ) in errors.link"
+                                                error
+                                            ) in errors.name"
                                         >
                                             {{ error }}
                                         </li>
                                     </ul>
                                 </div>
 
-                                <div>
+                                <div class="mb-5">
                                     <label
                                         for="default-input"
                                         class="block mb-2 text-sm font-medium text-gray-900"
@@ -305,17 +315,17 @@ onMounted(() => {
                                         <li
                                             v-for="(
                                                 error, index
-                                            ) in errors.link"
+                                            ) in errors.email"
                                         >
                                             {{ error }}
                                         </li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <label
-                                        for="default-input"
-                                        class="block mb-2 text-sm font-medium text-gray-900"
-                                    >
+                                    <input
+                                        type="text"
+                                        id="default-input"
+                                        v-model="currentUsers.email" />
                                         Password
                                     </label>
 
@@ -333,12 +343,14 @@ onMounted(() => {
                                         <li
                                             v-for="(
                                                 error, index
-                                            ) in errors.link"
+                                            ) in errors.password"
+
                                         >
                                             {{ error }}
                                         </li>
                                     </ul>
                                 </div>
+
                                 <!-- Modal footer -->
                                 <div class="flex items-center pt-6 border-t">
                                     <button
