@@ -1,21 +1,22 @@
 <script setup>
-    import { ref, reactive, onMounted } from 'vue';
+    import { ref, reactive, onMounted, computed } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '@/Components/Modal.vue';
     import { useApiRequest } from '@/Helper/api.js';
     import TablePage from '../Category/Partials/TablePage.vue';
+    import apiRequest from '../API/main';
 
     const props = defineProps({
         url: String,
     });
 
     const data = ref([]);
+    const errors = ref([]);
 
-    const form = reactive({
-        name: ''
-    });
-
+    const currentCategory = reactive({ name: '' });
+  
     const isModalOpen = ref(false);
+
     function openNewProductModal() {
         isModalOpen.value = true;
     };
@@ -25,47 +26,44 @@
     };
 
     const submitForm = async () => {
+        const formData = {
+          ...currentCategory
+        };
 
-        const payload = {
-            name: form.name,
+         try {
+            const response = await apiRequest({
+                url: "categories",
+                method: "post",
+                data: formData,
+            });
+
+            location.reload();
+        } catch (err) {
+            errors.value = err.response.data.errors;
         }
 
-        const response = await useApiRequest('categories', 'POST', {
-            headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
-            },
-            body: payload
-        });
-
-        if (response.success) {
-            console.log(response);
-            form.name = '';
-            isModalOpen.value = false;
-            getCategory();
-        } else {
-            console.log('Gagal: ' + response.message);
-        }
     }
 
     const getCategory = async () => {
-        const response = await useApiRequest('categories', 'GET', {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
-        }
+      try {
+        const response = await apiRequest({
+            url: "/categories",
+            method: "get"
         });
 
-        if (response.success) {
+        if (response.status == 200) {
             data.value = response.data;
-        } else {
-            console.log('Gagal: ' + response.message);
-        }
+            console.log(response.data);
+        } 
+      } catch (err) {
+        console.log("Gagal mengambil category", err);
+      }
     }
 
     onMounted(() => {
         getCategory();
     });
+
 </script>
 
 <template>
@@ -131,7 +129,19 @@
             <form @submit.prevent="submitForm">
               <div class="mb-5">
                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Name</label>
-                <input type="text" id="name" v-model="form.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <input type="text" id="name" v-model="currentCategory.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <ul
+                    v-if="errors"
+                    class="text-red-500 text-sm mt-1"
+                >
+                    <li
+                        v-for="(
+                            error
+                        ) in errors.name"
+                    >
+                        {{ error }}
+                    </li>
+                </ul>
               </div>
               <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                 Submit

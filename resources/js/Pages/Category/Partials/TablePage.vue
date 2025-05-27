@@ -11,7 +11,7 @@ const props = defineProps({
 
 // State
 const data = ref(null)
-const form = reactive({ name: '' })
+const currentCategory = reactive({ name: '' });
 const isModalOpen = ref(false);
 
 const editCategory = async (id) => {
@@ -53,17 +53,16 @@ function closeModal() {
 };
 
 const submitForm = async (id) => {
+  const formData = {
+        ...currentCategory,
+  };
 
- const payload = {
-    name: form.name,
- }
-
-    const response = await useApiRequest(`categories/${id}`, 'POST', {
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
-    },
-    body: payload
+  const response = await useApiRequest(`categories/${id}`, 'POST', {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
+      },
+    body: formData
     })
 
   if (response.success) {
@@ -78,6 +77,7 @@ const submitForm = async (id) => {
 watch(() => props.categori, (newVal) => {
   console.log('Categori updated:', newVal)
 })
+
 </script>
 
 <template>
@@ -96,7 +96,7 @@ watch(() => props.categori, (newVal) => {
       </tr>
     </thead>
     <tbody class="text-gray">
-      <tr v-for="(items, key) in props.categori" :key="items.id" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
+      <tr v-for="(items, key) in props.categori.data" :key="items.id" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
         <td class="w-4 p-4">
           <div class="flex items-center">
             <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500">
