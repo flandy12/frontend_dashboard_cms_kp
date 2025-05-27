@@ -322,10 +322,10 @@ onMounted(() => {
                                     </ul>
                                 </div>
                                 <div>
-                                    <input
-                                        type="text"
-                                        id="default-input"
-                                        v-model="currentUsers.email" />
+                                    <label
+                                        for="default-input"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                    >
                                         Password
                                     </label>
 
