@@ -7,6 +7,7 @@ import { getUsers, postUsers } from "../API/users/apiUsers";
 import apiRequest from '../API/main';
 
 const users = ref([]);
+const errors = ref([]);
 const currentUsers = reactive({
     name: "",
     email: "",
@@ -26,13 +27,14 @@ const onSubmit = async () => {
         ...currentUsers,
     };
     try {
-        await postUsers(formData);
-        console.log(formData);
-        isModalOpen.value = false;
-
-        fetchUser();
+         const response = await apiRequest({
+            url: "users",
+            method: "post",
+            data: formData,
+        });
+        location.reload();
     } catch (err) {
-        console.log("Gagal menyimpan users", err);
+        errors.value = err.response.data.errors;
     }
 };
 
@@ -45,9 +47,7 @@ const fetchUser = async () => {
         if (response.status == 200) {
             users.value = response.data;
             console.log(response.data);
-        } else {
-            console.log("Gagal mengambil users", response.message);
-        }
+        } 
     } catch (err) {
         console.log("Gagal mengambil users", err);
     }
@@ -56,6 +56,7 @@ const fetchUser = async () => {
 onMounted(() => {
     fetchUser();
 });
+
 </script>
 <template>
     <MasterLayout :url="props.url">
@@ -282,15 +283,15 @@ onMounted(() => {
                                     >
                                         <li
                                             v-for="(
-                                                error, index
-                                            ) in errors.link"
+                                                error
+                                            ) in errors.name"
                                         >
                                             {{ error }}
                                         </li>
                                     </ul>
                                 </div>
 
-                                <div>
+                                <div class="mb-5">
                                     <label
                                         for="default-input"
                                         class="block mb-2 text-sm font-medium text-gray-900"
@@ -312,7 +313,7 @@ onMounted(() => {
                                         <li
                                             v-for="(
                                                 error, index
-                                            ) in errors.link"
+                                            ) in errors.email"
                                         >
                                             {{ error }}
                                         </li>
@@ -340,7 +341,7 @@ onMounted(() => {
                                         <li
                                             v-for="(
                                                 error, index
-                                            ) in errors.link"
+                                            ) in errors.password"
                                         >
                                             {{ error }}
                                         </li>
