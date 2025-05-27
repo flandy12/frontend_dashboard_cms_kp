@@ -1,11 +1,18 @@
 <script setup>
-    import { ref } from 'vue';
+    import { ref, reactive, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '@/Components/Modal.vue';
-        
+    import apiRequest from '../API/main';
+    
         const props = defineProps({
         url: String,
         });
+
+        const data = ref([]);
+        const errors = ref([]);
+        
+        const currentData = reactive({name:''});
+
         const isModalOpen = ref(false);
         function openNewProductModal() {
         isModalOpen.value = true;
@@ -16,9 +23,47 @@
         }
 
         function applyFilters() {
-        // Add your filter logic here
-        console.log('Filter button clicked');
+            // Add your filter logic here
+            console.log('Filter button clicked');
         }
+
+        const submitForm = async () => {
+            const formData = {
+            ...currentData
+            };
+
+            try {
+                const response = await apiRequest({
+                    url: "permissions",
+                    method: "post",
+                    data: formData,
+                });
+
+                location.reload();
+            } catch (err) {
+                errors.value = err.response.data.errors;
+            }
+        }
+    
+        const getPermission = async() => {
+            try {
+                const response = await apiRequest({
+                    url: "permissions",
+                    method: "get"
+                });
+
+                if (response.status == 200) {
+                    data.value = response.data;
+                    console.log(response);
+                    } 
+            } catch (err) {
+                console.log("Gagal mengambil role", err);
+            }
+        }
+
+        onMounted(() => {
+            getPermission();
+        });
  
 </script>
 <template>
@@ -73,7 +118,7 @@
                             </tr>
                         </thead>
                         <tbody class="text-gray-600">
-                            <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="bg-white border-b border-gray-200 hover:bg-gray-50" v-for="item in data" :key="item.id">
                                 <td class="w-4 p-4">
                                     <div class="flex items-center">
                                         <input id="checkbox-table-search-1" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 ">
@@ -81,7 +126,7 @@
                                     </div>
                                 </td>
                                 <th scope="row" class="px-6 py-4 font-medium whitespace-nowrap">
-                                    Apple MacBook Pro 17"
+                                    {{ item.name }}
                                 </th>
                                
                                 <td class="flex items-center px-6 py-4">
@@ -132,10 +177,10 @@
                         </div>
                         <!-- Modal body -->
                         <div class="p-4 md:p-5 space-y-4">
-                        <form class="">
+                        <form class="" @submit.prevent="submitForm">
                             <div class="mb-5">
                                 <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
-                                <input type="text" id="base-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
+                                <input type="text" id="base-input" v-model="currentData.nama" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
                             </div>
 
                               <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
