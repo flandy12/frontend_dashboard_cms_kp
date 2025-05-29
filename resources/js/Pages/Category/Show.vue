@@ -1,55 +1,29 @@
 <script setup>
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import MasterLayout from "../MasterLayout.vue";
-import { useApiRequest } from "@/Helper/api.js";
-import TablePage from "../Category/Partials/TablePage.vue";
 import apiRequest from "../API/main";
 import Modal from "@/Components/Modal.vue";
+import BaseTable from "@/Components/BaseTable.vue";
 
-const props = defineProps({
-    url: String,
-});
-
-const data = ref([]);
+const categories = ref([]);
+const columns = [{ label: "Name", key: "name" }];
 const errors = ref([]);
-const currentCategory = reactive({ name: "" });
 
-const submitForm = async (id) => {
-    if (!id) {
-        const formData = {
-            ...currentCategory,
-        };
-        try {
-            const response = await apiRequest({
-                url: "categories",
-                method: "post",
-                data: formData,
-            });
-
-            location.reload();
-        } catch (err) {
-            errors.value = err.response.data.errors;
-        }
-    } else {
-        try {
-            const response = await apiRequest({
-                url: `/categories/${id}`,
-                method: "get",
-            });
-            console.log(response);
-        } catch (err) {
-            console.log("Gagal mengambil category", err);
-        }
-    }
-};
-
+const currentCategory = reactive({ id: null, name: "" });
+const isEditing = ref(false);
 const isModalOpen = ref(false);
-function openNewProductModal() {
-    isModalOpen.value = true;
-}
 
-function closeModal() {
-    isModalOpen.value = false;
+function openModal(category) {
+    if (category) {
+        isEditing.value = true;
+        currentCategory.id = category.id;
+        currentCategory.name = category.name;
+    } else {
+        isEditing.value = false;
+        currentCategory.id = null;
+        currentCategory.name = "";
+    }
+    isModalOpen.value = true;
 }
 
 function applyFilters() {
@@ -57,33 +31,75 @@ function applyFilters() {
     console.log("Filter button clicked");
 }
 
-const getCategory = async () => {
+const submitForm = async () => {
+    try {
+        if (isEditing.value) {
+            await apiRequest({
+                url: `categories/${currentCategory.id}`,
+                method: "put",
+                data: { name: currentCategory.name },
+            });
+        } else {
+            await apiRequest({
+                url: "categories",
+                method: "post",
+                data: { name: currentCategory.name },
+            });
+        }
+        isModalOpen.value = false;
+        getCategories();
+
+        // location.reload();
+    } catch (err) {
+        errors.value = err.response.data.errors;
+    }
+};
+
+const getCategories = async () => {
     try {
         const response = await apiRequest({
-            url: "/categories",
+            url: "categories",
             method: "get",
         });
         if (response.status == 200) {
-            data.value = response.data;
-            console.log(response.data);
+            categories.value = response.data.data;
         }
     } catch (err) {
         console.log("Gagal mengambil category", err);
     }
 };
 
+const deleteCategory = async (id) => {
+    const confirmDelete = confirm(
+        "Are you sure you want to delete this category?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+        await apiRequest({
+            url: `categories/${id}`,
+            method: "delete",
+        });
+
+        getCategories();
+    } catch (err) {
+        console.error("Gagal menghapus category", err);
+        alert("Gagal menghapus category.");
+    }
+};
+
 onMounted(async () => {
-    await getCategory();
+    await getCategories();
 });
 </script>
 
 <template>
-    <MasterLayout :url="props.url">
+    <MasterLayout>
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Category</h1>
                 <button
-                    @click="openNewProductModal"
+                    @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
                     New Category
@@ -130,7 +146,22 @@ onMounted(async () => {
                             <button>Select All</button>
                         </div>
                     </div>
-                    <TablePage :categori="data" />
+                    <BaseTable :data="categories" :columns="columns">
+                        <template #actions="{ item }">
+                            <button
+                                @click="openModal(item)"
+                                class="text-blue-600 hover:underline mr-2"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                @click="deleteCategory(item.id)"
+                                class="text-red-600 hover:underline"
+                            >
+                                Remove
+                            </button>
+                        </template>
+                    </BaseTable>
                 </div>
             </div>
         </div>
@@ -157,19 +188,20 @@ onMounted(async () => {
             </div>
         </div>
 
-        <Modal :show="isModalOpen" @close="closeModal">
+        <Modal :show="isModalOpen" @close="isModalOpen = false">
             <div class="relative p-4 w-full max-w-2xl max-h-full">
                 <div class="relative rounded-lg shadow-sm">
                     <div
                         class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                     >
                         <h3 class="text-xl font-semibold text-gray-900">
-                            New Category
+                            {{ isEditing ? "Edit Category" : "New Category" }}
                         </h3>
                         <button
                             type="button"
                             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
-                            @click="closeModal"
+                            data-modal-hide="default-modal"
+                            @click="isModalOpen = false"
                         >
                             <svg
                                 class="w-3 h-3"
@@ -213,6 +245,7 @@ onMounted(async () => {
                                 </ul>
                             </div>
                             <button
+                                data-modal-hide="default-modal"
                                 type="submit"
                                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                             >
