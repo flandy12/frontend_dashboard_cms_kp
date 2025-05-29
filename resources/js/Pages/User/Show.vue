@@ -22,19 +22,13 @@ const isEditing = ref(false);
 const isModalOpen = ref(false);
 
 function openModal(user) {
-    if (user) {
-        isEditing.value = true;
-        currentUser.id = user.id;
-        currentUser.name = user.name;
-        currentUser.email = user.email;
-        currentUser.password = user.password;
-    } else {
-        isEditing.value = false;
-        currentUser.id = null;
-        currentUser.name = "";
-        currentUser.email = "";
-        currentUser.password = "";
-    }
+    isEditing.value = !!user;
+    Object.assign(currentUser, {
+        id: user?.id ?? null,
+        name: user?.name ?? "",
+        email: user?.email ?? "",
+        password: user?.password ?? "",
+    });
     isModalOpen.value = true;
 }
 
@@ -43,18 +37,21 @@ function applyFilters() {
 }
 
 const submitForm = async () => {
+    const formData = {
+        ...currentUser,
+    };
     try {
         if (isEditing.value) {
             await apiRequest({
                 url: `users/${currentUser.id}`,
                 method: "put",
-                data: { name: currentUser.name },
+                data: formData,
             });
         } else {
             await apiRequest({
                 url: "users",
                 method: "post",
-                data: { name: currentUser.name },
+                data: formData,
             });
         }
         isModalOpen.value = false;

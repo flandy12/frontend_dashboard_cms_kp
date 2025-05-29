@@ -14,18 +14,13 @@ const isEditing = ref(false);
 const isModalOpen = ref(false);
 
 function openModal(category) {
-    if (category) {
-        isEditing.value = true;
-        currentCategory.id = category.id;
-        currentCategory.name = category.name;
-    } else {
-        isEditing.value = false;
-        currentCategory.id = null;
-        currentCategory.name = "";
-    }
+    isEditing.value = !!category;
+    Object.assign(currentCategory, {
+        id: category?.id ?? null,
+        name: category?.name ?? "",
+    });
     isModalOpen.value = true;
 }
-
 function applyFilters() {
     // Add your filter logic here
     console.log("Filter button clicked");
