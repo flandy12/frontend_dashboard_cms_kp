@@ -426,6 +426,67 @@ onMounted(() => {
                 </div>
             </div>
         </Modal>
+
+         <!-- Give Permission -->
+        <Modal :show="isModalOpenGivePermission" @close="isModalOpenGivePermission = false">
+            <!-- Main modal -->
+            <div id="">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                    <!-- Modal content -->
+                    <div class="relative rounded-lg shadow-sm ">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t  border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-900 ">
+                                New Role
+                            </h3>
+                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center " data-modal-hide="default-modal" @click="isModalOpenGivePermission = false">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                </svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 md:p-5 space-y-4">
+                        <form @submit.prevent="submitFormGivePermission">
+                            <div class="mb-5">
+                                <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
+                                <input type="text" id="base-input" v-model="currentData.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
+                                <ul
+                                    v-if="errors"
+                                    class="text-red-500 text-sm mt-1"
+                                >
+                                    <li
+                                        v-for="(
+                                            error
+                                        ) in errors.name"
+                                    >
+                                        {{ error }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-5" v-if="dataPermission.length > 0">
+                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
+                              <select
+                                id="permissions"
+                                v-model="selectedPermissions"
+                                multiple
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              >
+                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
+                              </select>
+                            </div>
+                            
+
+                            <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+        
     </MasterLayout>
 </template>
 
