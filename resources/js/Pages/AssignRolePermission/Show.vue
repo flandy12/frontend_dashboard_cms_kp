@@ -1,132 +1,197 @@
 <script setup>
-import { ref, computed } from 'vue';
-import MasterLayout from '../MasterLayout.vue';
-import Modal from '@/Components/Modal.vue';
-  
+  import { ref, computed, onMounted } from 'vue';
+  import MasterLayout from '../MasterLayout.vue';
+  import Modal from '@/Components/Modal.vue';
+  import apiRequest from '../API/main.js'
   const props = defineProps({ 
   url: String,
   });
 
 
-const user = ref([
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john@example.com',
-    role: 'Admin',
-    permissions: ['create', 'edit', 'delete'],
-    status: 'Active',
-    date: '2023-10-01'
-  },
-  {
-    id: 2,
-    name: 'Masa',
-    email: 'masa@example.com',
-    role: 'Admin',
-    permissions: ['create', 'edit', 'delete'],
-    status: 'Active',
-    date: '2023-10-01'
-  },
-  {
-    id: 3,
-    name: 'Lia Kartika',
-    email: 'lia@example.com',
-    role: 'Editor',
-    permissions: ['edit'],
-    status: 'Inactive',
-    date: '2023-11-10'
-  },
-  {
-    id: 4,
-    name: 'Rangga Putra',
-    email: 'rangga@example.com',
-    role: 'Viewer',
-    permissions: [],
-    status: 'Active',
-    date: '2024-01-15'
-  },
-  {
-    id: 5,
-    name: 'Citra Ayu',
-    email: 'citra@example.com',
-    role: 'Moderator',
-    permissions: ['edit', 'delete'],
-    status: 'Pending',
-    date: '2024-03-22'
-  },
-  {
-    id: 6,
-    name: 'Dika Yudha',
-    email: 'dika@example.com',
-    role: 'Admin',
-    permissions: ['create', 'edit', 'delete', 'publish'],
-    status: 'Active',
-    date: '2024-04-12'
-  },
-  {
-    id: 7,
-    name: 'Sinta Dewi',
-    email: 'sinta@example.com',
-    role: 'Editor',
-    permissions: ['edit'],
-    status: 'Inactive',
-    date: '2024-05-01'
-  },
-  {
-    id: 8,
-    name: 'Bima Pratama',
-    email: 'bima@example.com',
-    role: 'Viewer',
-    permissions: [],
-    status: 'Active',
-    date: '2024-06-18'
-  },
-  {
-    id: 9,
-    name: 'Nina Aulia',
-    email: 'nina@example.com',
-    role: 'Admin',
-    permissions: ['create', 'edit'],
-    status: 'Suspended',
-    date: '2024-07-30'
-  },
-  {
-    id: 10,
-    name: 'Yoga Permana',
-    email: 'yoga@example.com',
-    role: 'Moderator',
-    permissions: ['delete'],
-    status: 'Active',
-    date: '2024-08-10'
-  }
-]);
+    const user = ref([
+      {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'Admin',
+        permissions: ['create', 'edit', 'delete'],
+        status: 'Active',
+        date: '2023-10-01'
+      },
+      {
+        id: 2,
+        name: 'Masa',
+        email: 'masa@example.com',
+        role: 'Admin',
+        permissions: ['create', 'edit', 'delete'],
+        status: 'Active',
+        date: '2023-10-01'
+      },
+      {
+        id: 3,
+        name: 'Lia Kartika',
+        email: 'lia@example.com',
+        role: 'Editor',
+        permissions: ['edit'],
+        status: 'Inactive',
+        date: '2023-11-10'
+      },
+      {
+        id: 4,
+        name: 'Rangga Putra',
+        email: 'rangga@example.com',
+        role: 'Viewer',
+        permissions: [],
+        status: 'Active',
+        date: '2024-01-15'
+      },
+      {
+        id: 5,
+        name: 'Citra Ayu',
+        email: 'citra@example.com',
+        role: 'Moderator',
+        permissions: ['edit', 'delete'],
+        status: 'Pending',
+        date: '2024-03-22'
+      },
+      {
+        id: 6,
+        name: 'Dika Yudha',
+        email: 'dika@example.com',
+        role: 'Admin',
+        permissions: ['create', 'edit', 'delete', 'publish'],
+        status: 'Active',
+        date: '2024-04-12'
+      },
+      {
+        id: 7,
+        name: 'Sinta Dewi',
+        email: 'sinta@example.com',
+        role: 'Editor',
+        permissions: ['edit'],
+        status: 'Inactive',
+        date: '2024-05-01'
+      },
+      {
+        id: 8,
+        name: 'Bima Pratama',
+        email: 'bima@example.com',
+        role: 'Viewer',
+        permissions: [],
+        status: 'Active',
+        date: '2024-06-18'
+      },
+      {
+        id: 9,
+        name: 'Nina Aulia',
+        email: 'nina@example.com',
+        role: 'Admin',
+        permissions: ['create', 'edit'],
+        status: 'Suspended',
+        date: '2024-07-30'
+      },
+      {
+        id: 10,
+        name: 'Yoga Permana',
+        email: 'yoga@example.com',
+        role: 'Moderator',
+        permissions: ['delete'],
+        status: 'Active',
+        date: '2024-08-10'
+      }
+    ]);
 
 
+    const searchQuery = ref('');
+    const isModalOpen = ref(false);
+    let dataPermission = ref([]);
+    let dataRole = ref([]);
+    const selectedRole = ref([]);
+    const selectedPermissions = ref([]);
 
-const searchQuery = ref('');
-const isModalOpen = ref(false);
 
-const filteredProducts = computed(() => {
-  if (!searchQuery.value) return user.value;
-  return user.value.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.emai.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
+    const filteredProducts = computed(() => {
+      if (!searchQuery.value) return user.value;
+      return user.value.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        product.emai.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        product.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    });
 
-function openNewProductModal() {
-  isModalOpen.value = true;
-}
+    const data = ref([]);
 
-function closeModal() {
-  isModalOpen.value = false;
-}
+    function openNewProductModal() {
+      isModalOpen.value = true;
+    }
 
-function applyFilters() {
-  // Add your filter logic here
-  console.log('Filter button clicked');
-}
+    function closeModal() {
+      isModalOpen.value = false;
+    }
+
+    function applyFilters() {
+      // Add your filter logic here
+      console.log('Filter button clicked');
+    }
+
+    const getData = async() => {
+      try {
+            const response = await apiRequest({
+                url: "users/roles-permissions",
+                method: "get"
+            });
+
+            console.log(response);
+            if (response.status == 200) {
+                data.value = response.data;
+                console.log(response);
+            } 
+      } catch (err) {
+        console.log("Gagal mengambil role", err);
+      }
+    }
+
+    const actionClickEdit = async (id) => {
+      openNewProductModal();
+      try {
+
+            
+            
+      } catch (err) {
+        console.log("Gagal mengambil role", err);
+      }
+    }
+
+
+   onMounted(async () => {
+        await getData();
+
+        try {
+          const permission = await apiRequest({
+            url: "permissions",
+            method: "get",
+          });
+
+          if (permission.status === 200) {
+            dataPermission.value = permission.data;
+            console.log("Permissions:", permission.data);
+          }
+
+          const role = await apiRequest({
+            url: "roles",
+            method: "get",
+          });
+
+          if (role.status === 200) {
+            dataRole.value = role.data;
+            console.log("Roles:", role.data);
+          }
+        } catch (err) {
+          console.error("Gagal mengambil permissions/roles:", err);
+        }
+      });
+
+
 </script>
 
 <template>
@@ -185,37 +250,42 @@ function applyFilters() {
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
             <tr>
               <th class="px-6 py-3">No</th>
-  
+              <th class="px-6 py-3">Name</th>
               <th class="px-6 py-3">Email</th>
               <th class="px-6 py-3">Role</th>
               <th class="px-6 py-3">Permission</th>
-              <th class="px-6 py-3">Status</th>
               <th class="px-6 py-3">Action</th>
 
             </tr>
           </thead>
           <tbody class="text-gray-600  h-[400px]">
             <tr
-              v-for="user in filteredProducts"
-              :key="user.id"
+              v-for="(user,key) in data"
+              :key="key"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
               <td class="w-4 p-4">
-                {{ user.id }}
+                {{ key + 1 }}
               </td>
-             
+              <td class="px-6 py-4 capitalize">{{ user.name }}</td>
               <td class="px-6 py-4">{{ user.email }}</td>
-              <td class="px-6 py-4">{{ user.role }}</td>
              <td class="px-6 py-4">
-              <p v-for="(permission, index) in user.permissions" :key="index">
-                - {{ permission }}<span v-if="index < user.permissions.length - 1">, </span>
-              </p>
+              <span v-if="user.roles && user.roles.length > 0">{{ user.roles.join(', ') }}</span>
+              <span v-else>-</span>
             </td>
 
+             <td class="px-6 py-4">
+                <span v-if="user.permissions && user.permissions.length > 0">{{ user.permissions.join(', ') }}</span>
+                <span v-else>-</span>
+              </td>
 
-              <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">{{ user.status }}</span></td>
+              <!-- <td class="px-6 py-4" v-for="(permission, index) in user.permissions" :key="index">
+                <p>
+                  - {{ permission }}<span v-if="index < user.permissions.length - 1">, </span>
+                </p>
+              </td> -->
               <td class="px-6 py-4">
-               <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+               <button @click=actionClickEdit(user.id) class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
                                     <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Remove</a></td>
               
             </tr>
@@ -266,25 +336,27 @@ function applyFilters() {
                                 <input type="email" id="base-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             </div>
 
-                           <div class="mb-5">
-                            <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 ">Select An Role</label>
-                            <select id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                              <option selected>Choose</option>
-                              <option value="US">United States</option>
-                              <option value="CA">Canada</option>
-                              <option value="FR">France</option>
-                              <option value="DE">Germany</option>
-                            </select>
+                            <div class="mb-5">
+                              <label for="roles" class="block mb-2 text-sm font-medium text-gray-900">Select A Role</label>
+                              <select
+                                id="roles"
+                                v-model="selectedRole"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              >
+                                <option disabled value="">Choose</option>
+                                <option v-for="item in dataRole" :key="item.id" :value="item.name">{{ item.name }}</option>
+                              </select>
                             </div>
 
                             <div class="mb-5">
-                              <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 ">Select An Permission</label>
-                              <select id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
-                                <option selected>Choose</option>
-                                <option value="US">United States</option>
-                                <option value="CA">Canada</option>
-                                <option value="FR">France</option>
-                                <option value="DE">Germany</option>
+                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
+                              <select
+                                id="permissions"
+                                v-model="selectedPermissions"
+                                multiple
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              >
+                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
                               </select>
                             </div>
 

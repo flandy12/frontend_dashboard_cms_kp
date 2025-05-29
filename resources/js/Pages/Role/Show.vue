@@ -1,70 +1,159 @@
 <script setup>
-    import { ref, onMounted, reactive } from 'vue';
-    import MasterLayout from '../MasterLayout.vue';
-    import Modal from '@/Components/Modal.vue';
-    import apiRequest from '../API/main';
+import { ref, onMounted, reactive } from 'vue';
+import MasterLayout from '../MasterLayout.vue';
+import Modal from '@/Components/Modal.vue';
+import apiRequest from '../API/main';
 
-    const props = defineProps({
-        url: String,
-    });
+const props = defineProps({
+    url: String,
+});
 
-    const data = ref([]);
-    const errors = ref([]);
-    const currentData = reactive({ name: '' });
+const data = ref([]);
+const errors = ref([]);
+const currentData = reactive({
+    id: null,
+    name: ''
+});
 
-    const isModalOpen = ref(false);
-    function openNewProductModal() {
+const dataPermission = ref([]);
+const selectedPermissions = ref([]);
+
+const isModalOpen = ref(false);
+const isModalOpenGivePermission = ref(false);
+
+function openNewProductModal() {
     isModalOpen.value = true;
-    }
+    currentData.id = null;
+    currentData.name = '';
+    selectedPermissions.value = [];
+    fetchPermissions(); // Ambil permission saat modal dibuka
+}
 
-    function closeModal() {
+function openEditRoleModal(role) {
+    isModalOpen.value = true;
+}
+
+function openEditRoleModalGivePermission(role) {
+    isModalOpenGivePermission.value = true;
+    currentData.id = role.id;
+    currentData.name = role.name;
+    fetchPermissions(role.id); // Ambil permission dan centang yang sudah ada
+}
+
+function closeModal() {
     isModalOpen.value = false;
-    }
+    errors.value = [];
+}
 
-    function applyFilters() {
-    // Add your filter logic here
-    console.log('Filter button clicked');
-    }
+// Ambil permissions dan tandai yang sudah dimiliki jika mode edit
+const fetchPermissions = async (roleId = null) => {
+    try {
+        // Ambil semua permission dari endpoint: /api/permissions
+        const res = await apiRequest({ url: "permissions", method: "get" });
+        dataPermission.value = res.data;
 
-     const submitForm = async () => {
-        const formData = {
-          ...currentData
-        };
-
-         try {
-            const response = await apiRequest({
-                url: "roles",
-                method: "post",
-                data: formData,
-            });
-
-            location.reload();
-        } catch (err) {
-            errors.value = err.response.data.errors;
-        }
-
-    }
-    
-    const getRole = async() => {
-        try {
-            const response = await apiRequest({
-                url: "roles",
+        // Jika roleId diberikan, ambil permissions untuk role tersebut
+        if (roleId) {
+            const rolePermissions = await apiRequest({
+                url: `roles/${roleId}/permissions`,
                 method: "get"
             });
 
-            if (response.status == 200) {
-                data.value = response.data;
-                console.log(response);
-            } 
-      } catch (err) {
-        console.log("Gagal mengambil role", err);
-      }
-    }
-    onMounted(() => {
-        getRole();
-    });
+            console.log('rolePermissions response:', rolePermissions.data);
 
+            // Ambil array nama permission langsung (karena dari controller adalah array of string)
+            selectedPermissions.value = rolePermissions.data.permissions;
+        }
+    } catch (err) {
+        console.error("Gagal mengambil permissions", err);
+    }
+}
+
+
+const submitForm = async () => {
+    const payload = { name: currentData.name };
+
+    try {
+        let roleId;
+
+        if (currentData.id) {
+            // UPDATE ROLE
+            const response = await apiRequest({
+                url: `roles/${currentData.id}`,
+                method: "put",
+                data: payload,
+            });
+            roleId = currentData.id;
+        } else {
+            // CREATE ROLE
+            const response = await apiRequest({
+                url: "roles",
+                method: "post",
+                data: payload,
+            });
+            roleId = response.data.id;
+        }
+
+        // SYNC PERMISSIONS
+        await apiRequest({
+            url: `roles/${roleId}/permissions`,
+            method: "post",
+            data: {
+                permissions: selectedPermissions.value,
+            },
+        });
+
+        location.reload();
+    } catch (err) {
+        console.error(err);
+        if (err.response?.data?.errors) {
+            errors.value = err.response.data.errors;
+        }
+    }
+}
+
+
+const submitFormGivePermission = async () => {
+    const payload = { name: currentData.name };
+
+    try {
+        let roleId;
+
+        // SYNC PERMISSIONS
+        await apiRequest({
+            url: `roles/${currentData.id}/permissions`,
+            method: "post",
+            data: {
+                permissions: selectedPermissions.value,
+            },
+        });
+
+        location.reload();
+    } catch (err) {
+        console.error(err);
+        if (err.response?.data?.errors) {
+            errors.value = err.response.data.errors;
+        }
+    }
+}
+
+
+const getRole = async () => {
+    try {
+        const response = await apiRequest({ url: "roles", method: "get" });
+        if (response.status == 200) {
+            data.value = response.data;
+        }
+    } catch (err) {
+        console.log("Gagal mengambil role", err);
+    }
+}
+
+onMounted(async () => {
+    await getRole();
+});
 </script>
+
 <template>
   <MasterLayout :url="props.url">
     
@@ -127,8 +216,9 @@
                                     {{item.name}}
                                 </th>
                                
-                                <td class="flex items-center px-6 py-4">
-                                    <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                                <td class="flex gap-5 items-center px-6 py-4">
+                                    <a  @click.prevent="openEditRoleModal(item)" class="font-medium cursor-pointer text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                                    <a  @click.prevent="openEditRoleModalGivePermission(item)" class="font-medium cursor-pointer text-blue-600 dark:text-blue-500 hover:underline">Give Permission</a>
                                     <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Remove</a>
                                 </td>
                             </tr>
@@ -155,7 +245,8 @@
             </div>
         </div>
 
-         <Modal :show="isModalOpen" @close="isModalOpen = false">
+        <!-- Add Role -->
+        <Modal :show="isModalOpen" @close="isModalOpen = false">
             <!-- Main modal -->
             <div id="">
                 <div class="relative p-4 w-full max-w-2xl max-h-full">
@@ -175,7 +266,54 @@
                         </div>
                         <!-- Modal body -->
                         <div class="p-4 md:p-5 space-y-4">
-                        <form class="" @submit.prevent="submitForm">
+                        <form @submit.prevent="submitForm">
+                            <div class="mb-5">
+                                <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
+                                <input type="text" id="base-input" v-model="currentData.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
+                                <ul
+                                    v-if="errors"
+                                    class="text-red-500 text-sm mt-1"
+                                >
+                                    <li
+                                        v-for="(
+                                            error
+                                        ) in errors.name"
+                                    >
+                                        {{ error }}
+                                    </li>
+                                </ul>
+                            </div>  
+
+                            <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+
+        <!-- Give Permission -->
+        <Modal :show="isModalOpenGivePermission" @close="isModalOpenGivePermission = false">
+            <!-- Main modal -->
+            <div id="">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                    <!-- Modal content -->
+                    <div class="relative rounded-lg shadow-sm ">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t  border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-900 ">
+                                New Role
+                            </h3>
+                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center " data-modal-hide="default-modal" @click="isModalOpenGivePermission = false">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                </svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 md:p-5 space-y-4">
+                        <form @submit.prevent="submitFormGivePermission">
                             <div class="mb-5">
                                 <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
                                 <input type="text" id="base-input" v-model="currentData.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
@@ -193,12 +331,25 @@
                                 </ul>
                             </div>
 
-                              <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
+                            <div class="mb-5" v-if="dataPermission.length > 0">
+                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
+                              <select
+                                id="permissions"
+                                v-model="selectedPermissions"
+                                multiple
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              >
+                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
+                              </select>
+                            </div>
+                            
+
+                            <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
                         </form>
                         </div>
                     </div>
                 </div>
             </div>
-      </Modal>
+        </Modal>
   </MasterLayout>
 </template>
