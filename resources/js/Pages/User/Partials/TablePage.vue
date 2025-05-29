@@ -5,31 +5,36 @@ import Modal from "@/Components/Modal.vue";
 
 // Props
 const props = defineProps({
-    categori: Array,
+    users: Array,
 });
 
 // State
 const data = ref(null);
-const currentCategory = reactive({ name: "" });
+const currentUser = reactive({
+    profile_photo_url: "",
+    name: "",
+    email: "",
+    created_at: "",
+});
 const isModalOpen = ref(false);
 
-// const editCategory = async (id) => {
-//   const response = await useApiRequest(`categories/${id}`,'get', null, {
-//     'Content-Type': 'application/json',
-//     'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
-//   });
+const editCategory = async (id) => {
+    const response = await useApiRequest(`users/${id}`, "get", null, {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_APP_TOKEN}`,
+    });
 
-//   if (response.success) {
-//     data.value = response.data
-//     form.name = response.data.name  // isi form dengan data dari API
-//     openModal();
-//   } else {
-//     console.log('Gagal: ' + response.message)
-//   }
-// }
+    if (response.success) {
+        data.value = response.data;
+        form.name = response.data.name; // isi form dengan data dari API
+        openModal();
+    } else {
+        console.log("Gagal: " + response.message);
+    }
+};
 
 const deleteCategory = async (id) => {
-    const response = await useApiRequest(`categories/${id}`, "delete", {
+    const response = await useApiRequest(`users/${id}`, "delete", {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_APP_TOKEN}`,
     });
@@ -51,32 +56,31 @@ function closeModal() {
     isModalOpen.value = false;
 }
 
-// const submitForm = async (id) => {
-//   const formData = {
-//         ...currentCategory,
-//   };
+const submitForm = async (id) => {
+    const formData = {
+        ...currentUser,
+    };
 
-//   const response = await useApiRequest(`categories/${id}`, 'POST', {
-//       headers: {
-//           'Content-Type': 'application/json',
-//           'Authorization': `Bearer ${import.meta.env.VITE_APP_TOKEN}`
-//       },
-//     body: formData
-//     })
+    const response = await useApiRequest(`users/${id}`, "POST", {
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_APP_TOKEN}`,
+        },
+        body: formData,
+    });
 
-//   if (response.success) {
-//     data.value = response.data
-//     closeModal();
-//   } else {
-//     console.log('Gagal: ' + response.message)
-//   }
-
-// }
+    if (response.success) {
+        data.value = response.data;
+        closeModal();
+    } else {
+        console.log("Gagal: " + response.message);
+    }
+};
 
 watch(
-    () => props.categori,
+    () => props.users,
     (newVal) => {
-        console.log("Categori updated:", newVal);
+        console.log("User updated:", newVal);
     }
 );
 </script>
@@ -97,14 +101,16 @@ watch(
                         >
                     </div>
                 </th>
-                <th scope="col" class="px-6 py-3">No</th>
+                <th scope="col" class="px-6 py-3">Profile</th>
                 <th scope="col" class="px-6 py-3">Name</th>
+                <th scope="col" class="px-6 py-3">Email</th>
+                <th scope="col" class="px-6 py-3">Created_at</th>
                 <th scope="col" class="px-6 py-3">Action</th>
             </tr>
         </thead>
         <tbody class="text-gray">
             <tr
-                v-for="(items, key) in props.categori.data"
+                v-for="(items, key) in props.users"
                 :key="items.id"
                 class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
             >
@@ -117,10 +123,25 @@ watch(
                         <label class="sr-only">checkbox</label>
                     </div>
                 </td>
-                <th scope="row" class="px-6 py-4 whitespace-nowrap">
-                    {{ key + 1 }}
+                <th
+                    scope="row"
+                    class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                >
+                    <img
+                        :src="items.profile_photo_url"
+                        class="w-10 h-10 object-cover rounded-full"
+                        alt="User Image"
+                    />
                 </th>
+                <!-- <td class="px-6 py-4 whitespace-nowrap">
+                    {{ items.profile_photo_url }}
+                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap">{{ items.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ items.email }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ items.created_at }}
+                </td>
+
                 <td class="flex items-center px-6 py-4">
                     <span
                         class="font-medium text-blue-600 dark:text-blue-500 hover:underline cursor-pointer"
