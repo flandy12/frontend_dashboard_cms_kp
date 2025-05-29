@@ -66,15 +66,14 @@ const getCategory = async () => {
         if (response.status == 200) {
             data.value = response.data;
             console.log(response.data);
-            console.log("ho");
         }
     } catch (err) {
         console.log("Gagal mengambil category", err);
     }
 };
 
-onMounted(() => {
-    getCategory();
+onMounted(async () => {
+    await getCategory();
 });
 </script>
 

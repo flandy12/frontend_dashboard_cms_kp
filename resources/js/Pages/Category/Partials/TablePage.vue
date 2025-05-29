@@ -2,6 +2,7 @@
 import { reactive, ref, watch } from "vue";
 import { useApiRequest } from "@/Helper/api.js";
 import Modal from "@/Components/Modal.vue";
+import apiRequest from "../../API/main.js";
 
 // Props
 const props = defineProps({
@@ -28,18 +29,19 @@ const isModalOpen = ref(false);
 //   }
 // }
 
-const deleteCategory = async (id) => {
-    const response = await useApiRequest(`categories/${id}`, "delete", {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_APP_TOKEN}`,
-    });
-
-    if (response.success) {
-        data.value = response.data;
-        form.name = response.data.name; // isi form dengan data dari API
-        openModal();
-    } else {
-        console.log("Gagal: " + response.message);
+const deleteCategory = async(id) => {
+    try {
+        const response = await apiRequest({
+            url: `categories/${id}`,
+            method: "delete",
+        });
+        
+        if (response.data.success) {
+            data.value = response.data;
+            location.reload();
+        }
+    } catch (err) {
+        console.log("Gagal mengambil category", err);
     }
 };
 
