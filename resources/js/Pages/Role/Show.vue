@@ -10,16 +10,19 @@ const props = defineProps({
 
 const data = ref([]);
 const errors = ref([]);
+
 const currentData = reactive({ id: null, name: "" });
 const isEditing = ref(false);
-
 const isModalOpen = ref(false);
+
 function openNewProductModal(id = null) {
     if (id) {
         isEditing.value = true;
         getRoleById(id);
     } else {
         isEditing.value = false;
+        currentData.id = null;
+        currentData.name = "";
     }
     isModalOpen.value = true;
 }
@@ -39,11 +42,19 @@ const submitForm = async () => {
     };
 
     try {
-        const response = await apiRequest({
-            url: "roles",
-            method: "post",
-            data: formData,
-        });
+        if (isEditing.value && currentData.id) {
+            await apiRequest({
+                url: `roles/${currentData.id}`,
+                method: "put",
+                data: formData,
+            });
+        } else {
+            await apiRequest({
+                url: "roles",
+                method: "post",
+                data: formData,
+            });
+        }
 
         location.reload();
     } catch (err) {
@@ -75,11 +86,31 @@ const getRoleById = async (id) => {
         });
 
         if (response.status == 200) {
-            currentData.value = ;
-            console.log(currentData);
+            const role = response.data;
+            currentData.id = role.id;
+            currentData.name = role.name;
+            // console.log(role);
         }
+        // console.log(currentData);
     } catch (err) {
         console.log("Gagal mengambil role", err);
+    }
+};
+
+const deleteRole = async (id) => {
+    const confirmDelete = confirm("Are you sure you want to delete this role?");
+    if (!confirmDelete) return;
+
+    try {
+        await apiRequest({
+            url: `roles/${id}`,
+            method: "delete",
+        });
+
+        getRole();
+    } catch (err) {
+        console.error("Gagal menghapus role", err);
+        alert("Gagal menghapus role.");
     }
 };
 
@@ -93,7 +124,7 @@ onMounted(() => {
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Role</h1>
                 <button
-                    @click="openNewProductModal"
+                    @click="openNewProductModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
                     New Role
@@ -207,8 +238,11 @@ onMounted(() => {
                                     <a
                                         href="#"
                                         class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
-                                        >Remove</a
                                     >
+                                        <button @click="deleteRole(item.id)">
+                                            Remove
+                                        </button>
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>
@@ -250,7 +284,7 @@ onMounted(() => {
                             class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                         >
                             <h3 class="text-xl font-semibold text-gray-900">
-                                New Role
+                                Edit Role
                             </h3>
                             <button
                                 type="button"
