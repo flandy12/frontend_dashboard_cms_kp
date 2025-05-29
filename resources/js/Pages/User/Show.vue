@@ -1,35 +1,70 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import MasterLayout from "../MasterLayout.vue";
-import { useApiRequest } from "@/Helper/api.js";
 import Modal from "@Components/Modal.vue";
 import apiRequest from "../API/main";
-import TablePage from "../User/Partials/TablePage.vue";
+import BaseTable from "@/Components/BaseTable.vue";
 
-const props = defineProps({
-    url: String,
-});
-
-const data = ref([]);
+const users = ref([]);
+const columns = [
+    { label: "Profile", key: "profile_photo_url" },
+    { label: "Name", key: "name" },
+    { label: "Email", key: "email" },
+];
 const errors = ref([]);
+
 const currentUser = reactive({
     name: "",
     email: "",
     password: "",
 });
-
+const isEditing = ref(false);
 const isModalOpen = ref(false);
-function openNewProductModal() {
-    isModalOpen.value = true;
-}
 
-function closeModal() {
-    isModalOpen.value = false;
+function openModal(user) {
+    if (user) {
+        isEditing.value = true;
+        currentUser.id = user.id;
+        currentUser.name = user.name;
+        currentUser.email = user.email;
+        currentUser.password = user.password;
+    } else {
+        isEditing.value = false;
+        currentUser.id = null;
+        currentUser.name = "";
+        currentUser.email = "";
+        currentUser.password = "";
+    }
+    isModalOpen.value = true;
 }
 
 function applyFilters() {
     console.console.log("Filter button clicked");
 }
+
+const submitForm = async () => {
+    try {
+        if (isEditing.value) {
+            await apiRequest({
+                url: `users/${currentUser.id}`,
+                method: "put",
+                data: { name: currentUser.name },
+            });
+        } else {
+            await apiRequest({
+                url: "users",
+                method: "post",
+                data: { name: currentUser.name },
+            });
+        }
+        isModalOpen.value = false;
+        getUsers();
+
+        // location.reload();
+    } catch (err) {
+        errors.value = err.response.data.errors;
+    }
+};
 
 const getUsers = async () => {
     try {
@@ -38,7 +73,7 @@ const getUsers = async () => {
             method: "get",
         });
         if (response.status == 200) {
-            data.value = response.data;
+            users.value = response.data;
             console.log(response.data);
         }
     } catch (err) {
@@ -46,21 +81,20 @@ const getUsers = async () => {
     }
 };
 
-const submitForm = async () => {
-    const formData = {
-        ...currentUser,
-    };
+const deleteUser = async (id) => {
+    const confirmDelete = confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
 
     try {
-        const response = await apiRequest({
-            url: "users",
-            method: "post",
-            data: formData,
+        await apiRequest({
+            url: `users/${id}`,
+            method: "delete",
         });
 
-        location.reload();
+        getUsers();
     } catch (err) {
-        errors.value = err.response.data.errors;
+        console.error("Gagal menghapus user", err);
+        alert("Gagal menghapus user.");
     }
 };
 
@@ -69,12 +103,12 @@ onMounted(() => {
 });
 </script>
 <template>
-    <MasterLayout :url="props.url">
+    <MasterLayout>
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">User</h1>
                 <button
-                    @click="openNewProductModal"
+                    @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
                     New User
@@ -121,7 +155,22 @@ onMounted(() => {
                     <div>
                         <button>Select All</button>
                     </div>
-                    <TablePage :users="data" />
+                    <BaseTable :data="users" :columns="columns">
+                        <template #actions="{ item }">
+                            <button
+                                @click="openModal(item)"
+                                class="text-blue-600 hover:underline mr-2"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                @click="deleteUser(item.id)"
+                                class="text-red-600 hover:underline"
+                            >
+                                Remove
+                            </button>
+                        </template>
+                    </BaseTable>
                 </div>
             </div>
         </div>
@@ -148,19 +197,20 @@ onMounted(() => {
             </div>
         </div>
 
-        <Modal :show="isModalOpen" @close="closeModal">
+        <Modal :show="isModalOpen" @close="isModalOpen = false">
             <div class="relative p-4 w-full max-w-2xl max-h-full">
                 <div class="relative rounded-lg shadow-sm">
                     <div
                         class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                     >
                         <h3 class="text-xl font-semibold text-gray-900">
-                            New Users
+                            {{ isEditing ? "Edit User" : "New User" }}
                         </h3>
                         <button
                             type="button"
                             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
-                            @click="closeModal"
+                            data-modal-hide="default-modal"
+                            @click="isModalOpen = false"
                         >
                             <svg
                                 class="w-3 h-3"
