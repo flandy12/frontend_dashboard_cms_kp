@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, reactive } from 'vue';
   import MasterLayout from '../MasterLayout.vue';
   import Modal from '@/Components/Modal.vue';
   import apiRequest from '../API/main.js'
@@ -8,107 +8,15 @@
   });
 
 
-    const user = ref([
-      {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'Admin',
-        permissions: ['create', 'edit', 'delete'],
-        status: 'Active',
-        date: '2023-10-01'
-      },
-      {
-        id: 2,
-        name: 'Masa',
-        email: 'masa@example.com',
-        role: 'Admin',
-        permissions: ['create', 'edit', 'delete'],
-        status: 'Active',
-        date: '2023-10-01'
-      },
-      {
-        id: 3,
-        name: 'Lia Kartika',
-        email: 'lia@example.com',
-        role: 'Editor',
-        permissions: ['edit'],
-        status: 'Inactive',
-        date: '2023-11-10'
-      },
-      {
-        id: 4,
-        name: 'Rangga Putra',
-        email: 'rangga@example.com',
-        role: 'Viewer',
-        permissions: [],
-        status: 'Active',
-        date: '2024-01-15'
-      },
-      {
-        id: 5,
-        name: 'Citra Ayu',
-        email: 'citra@example.com',
-        role: 'Moderator',
-        permissions: ['edit', 'delete'],
-        status: 'Pending',
-        date: '2024-03-22'
-      },
-      {
-        id: 6,
-        name: 'Dika Yudha',
-        email: 'dika@example.com',
-        role: 'Admin',
-        permissions: ['create', 'edit', 'delete', 'publish'],
-        status: 'Active',
-        date: '2024-04-12'
-      },
-      {
-        id: 7,
-        name: 'Sinta Dewi',
-        email: 'sinta@example.com',
-        role: 'Editor',
-        permissions: ['edit'],
-        status: 'Inactive',
-        date: '2024-05-01'
-      },
-      {
-        id: 8,
-        name: 'Bima Pratama',
-        email: 'bima@example.com',
-        role: 'Viewer',
-        permissions: [],
-        status: 'Active',
-        date: '2024-06-18'
-      },
-      {
-        id: 9,
-        name: 'Nina Aulia',
-        email: 'nina@example.com',
-        role: 'Admin',
-        permissions: ['create', 'edit'],
-        status: 'Suspended',
-        date: '2024-07-30'
-      },
-      {
-        id: 10,
-        name: 'Yoga Permana',
-        email: 'yoga@example.com',
-        role: 'Moderator',
-        permissions: ['delete'],
-        status: 'Active',
-        date: '2024-08-10'
-      }
-    ]);
-
-
     const searchQuery = ref('');
     const isModalOpen = ref(false);
+    const isModalOpenGiveRole = ref(false);
+
     let dataPermission = ref([]);
     let dataRole = ref([]);
     const selectedRole = ref([]);
     const selectedPermissions = ref([]);
-
+    const currentData = reactive({ id: null, name: "", email:"" });
 
     const filteredProducts = computed(() => {
       if (!searchQuery.value) return user.value;
@@ -123,6 +31,10 @@
 
     function openNewProductModal() {
       isModalOpen.value = true;
+    }
+
+    function openNewProductModalGiveRole() {
+      isModalOpenGiveRole.value = true;
     }
 
     function closeModal() {
@@ -152,15 +64,63 @@
     }
 
     const actionClickEdit = async (id) => {
-      openNewProductModal();
-      try {
+      openNewProductModalGiveRole();
 
-            
-            
+      try {
+        if (id) {
+
+          const response = await apiRequest({
+            url: `users/${id}/roles-permissions`, // Panggil user spesifik
+            method: "get",
+          });
+
+          if (response.status === 200) {
+            const userData = response.data;
+
+            currentData.id = userData.id;
+            currentData.name = userData.name;
+            currentData.email = userData.email;
+           
+            selectedRole.value = Array.isArray(userData.roles) && userData.roles.length > 0
+              ? user.roles[0].name
+              : "";
+
+            console.log("Data user berhasil diambil:", userData);
+            console.log(userData);
+          }
+        } else {
+          currentData.id = null;
+          currentData.name = "";
+          currentData.email = "";
+          currentData.roles = [];
+
+          console.log(id);
+        }
       } catch (err) {
-        console.log("Gagal mengambil role", err);
+        console.error("Gagal mengambil role", err);
       }
-    }
+    };
+
+    const submitFormGiveRole = async () => {
+    
+      try {
+          // ASSIGN ROLE KE USER
+          await apiRequest({
+              url: `users/${currentData.id}/assign-role`,
+              method: "post",
+              data: {
+                  role: selectedRole.value, // 'admin', 'editor', dll
+              },
+          });
+
+          location.reload();
+      } catch (err) {
+          // console.error(err);
+          // if (err.response?.data?.errors) {
+          //     errors.value = err.response.data.errors;
+          // }
+      }
+  };
 
 
    onMounted(async () => {
@@ -279,11 +239,6 @@
                 <span v-else>-</span>
               </td>
 
-              <!-- <td class="px-6 py-4" v-for="(permission, index) in user.permissions" :key="index">
-                <p>
-                  - {{ permission }}<span v-if="index < user.permissions.length - 1">, </span>
-                </p>
-              </td> -->
               <td class="px-6 py-4">
                <button @click=actionClickEdit(user.id) class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
                                     <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Remove</a></td>
@@ -333,7 +288,7 @@
                         <form class="">
                             <div class="mb-5">
                                 <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Email</label>
-                                <input type="email" id="base-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <input v-model="currentData.email" type="email" id="base-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             </div>
 
                             <div class="mb-5">
@@ -347,19 +302,6 @@
                                 <option v-for="item in dataRole" :key="item.id" :value="item.name">{{ item.name }}</option>
                               </select>
                             </div>
-
-                            <div class="mb-5">
-                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
-                              <select
-                                id="permissions"
-                                v-model="selectedPermissions"
-                                multiple
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              >
-                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
-                              </select>
-                            </div>
-
                               <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
                         </form>
                         </div>
@@ -367,6 +309,52 @@
                 </div>
             </div>
       </Modal>
+
+      <Modal :show="isModalOpenGiveRole" @close="isModalOpenGiveRole = false">
+            <!-- Main modal -->
+            <div id="">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                    <!-- Modal content -->
+                    <div class="relative rounded-lg shadow-sm ">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t  border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-900 ">
+                                Give Role
+                            </h3>
+                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center " data-modal-hide="default-modal" @click="isModalOpenGiveRole = false">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                </svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 md:p-5 space-y-4">
+                        <form class="" @submit.prevent="submitFormGiveRole">
+                            <div class="mb-5">
+                                <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Email</label>
+                                <input v-model="currentData.email" type="email" id="base-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            </div>
+
+                            <div class="mb-5">
+                              <label for="roles" class="block mb-2 text-sm font-medium text-gray-900">Select A Role</label>
+                              <select
+                                id="roles"
+                                v-model="selectedRole"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              >
+                                <option disabled value="">Choose</option>
+                                <option v-for="item in dataRole" :key="item.id" :value="item.name">{{ item.name }}</option>
+                              </select>
+                            </div>
+                              <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </Modal>
+
     </div>
   </MasterLayout>
 </template>
