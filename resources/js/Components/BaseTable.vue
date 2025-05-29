@@ -68,7 +68,7 @@ function isImage(value) {
                     <template v-if="isImage(item[col.key])">
                         <img
                             :src="item[col.key]"
-                            class="w-10 h-10 object-cover rounded-full"
+                            class="w-20 h-full object-cover"
                             alt="Image"
                         />
                     </template>
