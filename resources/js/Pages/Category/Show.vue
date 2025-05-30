@@ -5,6 +5,10 @@ import apiRequest from "../API/main";
 import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 
+const props = defineProps({
+    url: String,
+});
+
 const categories = ref([]);
 const columns = [{ label: "Name", key: "name" }];
 const errors = ref([]);
@@ -89,7 +93,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <MasterLayout>
+    <MasterLayout :url="props.url">
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Category</h1>

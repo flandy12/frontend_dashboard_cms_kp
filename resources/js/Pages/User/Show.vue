@@ -5,6 +5,10 @@ import Modal from "@Components/Modal.vue";
 import apiRequest from "../API/main";
 import BaseTable from "@/Components/BaseTable.vue";
 
+const props = defineProps({
+    url: String,
+});
+
 const users = ref([]);
 const columns = [
     { label: "Profile", key: "profile_photo_url" },
@@ -40,6 +44,11 @@ const submitForm = async () => {
     const formData = {
         ...currentUser,
     };
+
+    if (isEditing.value && !currentUser.password) {
+        delete formData.password;
+    }
+
     try {
         if (isEditing.value) {
             await apiRequest({
@@ -100,7 +109,7 @@ onMounted(() => {
 });
 </script>
 <template>
-    <MasterLayout>
+    <MasterLayout :url="props.url">
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">User</h1>
@@ -271,7 +280,7 @@ onMounted(() => {
                                     </li>
                                 </ul>
                             </div>
-                            <div class="mb-5">
+                            <div v-if="!isEditing" class="mb-5">
                                 <label
                                     for="name"
                                     class="block mb-2 text-sm font-medium text-gray-900"
