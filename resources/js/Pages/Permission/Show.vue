@@ -14,15 +14,11 @@ const isEditing = ref(false);
 const isModalOpen = ref(false);
 
 function openModal(permission) {
-    if (permission) {
-        isEditing.value = true;
-        currentPermission.id = permission.id;
-        currentPermission.name = permission.name;
-    } else {
-        isEditing.value = false;
-        currentPermission.id = null;
-        currentPermission.name = "";
-    }
+    isEditing.value = !!permission;
+    Object.assign(currentPermission, {
+        id: permission?.id ?? null,
+        name: permission?.name ?? "",
+    });
     isModalOpen.value = true;
 }
 

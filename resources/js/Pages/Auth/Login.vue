@@ -7,6 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import {apiRequest} from '../API/main.js';
 
 defineProps({
     canResetPassword: Boolean,
@@ -19,14 +20,51 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
-    form.transform(data => ({
-        ...data,
-        remember: form.remember ? 'on' : '',
-    })).post(route(''), {
-        onFinish: () => form.reset('password'),
-    });
+// const submit = () => {
+//     form.transform(data => ({
+//         ...data,
+//         remember: form.remember ? 'on' : '',
+//     })).post(route(''), {
+//         onFinish: () => form.reset('password'),
+//     });
+// };
+function setCookie(name, value, days) {
+  const d = new Date();
+  d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+  const expires = "expires=" + d.toUTCString();
+
+  // secure dan samesite bisa ditambahkan di sini
+  document.cookie = `${name}=${value}; ${expires}; path=/`;
+}
+
+const submit = async () => {
+    try {
+        const response = await apiRequest('/login', {
+            email: form.email,
+            password: form.password,
+            remember: form.remember,
+        });
+
+        console.log(response);
+
+        // Simpan token ke cookie jika login berhasil
+        setCookie('token', response.access_token, 1);
+
+        // Redirect ke dashboard
+        window.location.href = '/dashboard';
+    } catch (error) {
+        if (error.response && error.response.status === 422) {
+            form.setErrors(error.response.data.errors);
+        } else {
+            console.error(error);
+            alert('Login gagal. Cek email dan password.');
+        }
+    } finally {
+        form.reset('password');
+    }
 };
+
+
 </script>
 
 <template>

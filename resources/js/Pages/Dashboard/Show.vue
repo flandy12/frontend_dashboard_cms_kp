@@ -1,7 +1,8 @@
 <script setup>
-    import { ref, computed } from 'vue';
+    import { ref, computed, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '../../Components/Modal.vue';
+    import apiRequest from '../API/main.js'
 
     const products = ref([
         {
@@ -63,6 +64,26 @@
         // Add your filter logic here
         console.log('Filter button clicked');
     }
+
+    const getUsers = async () => {
+    try {
+        const response = await apiRequest({
+            url: "/users",
+            method: "get",
+        });
+        if (response.status == 200) {
+            users.value = response.data;
+            console.log(response.data);
+        }
+    } catch (err) {
+        console.log("Gagal mengambil users", err);
+    }
+};
+
+onMounted(() => {
+    getUsers();
+});
+
 </script>
 
 <template>

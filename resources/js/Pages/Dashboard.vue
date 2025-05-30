@@ -1,6 +1,43 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Welcome from '@/Components/Welcome.vue';
+
+const getUsers = async () => {
+    try {
+        const response = await apiRequest({
+            url: "/users",
+            method: "get",
+        });
+        if (response.status == 200) {
+            users.value = response.data;
+            console.log(response.data);
+        }
+    } catch (err) {
+        console.log("Gagal mengambil users", err);
+    }
+};
+
+const deleteUser = async (id) => {
+    const confirmDelete = confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
+
+    try {
+        await apiRequest({
+            url: `users/${id}`,
+            method: "delete",
+        });
+
+        getUsers();
+    } catch (err) {
+        console.error("Gagal menghapus user", err);
+        alert("Gagal menghapus user.");
+    }
+};
+
+onMounted(() => {
+    getUsers();
+});
+
 </script>
 
 <template>

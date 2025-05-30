@@ -7,8 +7,9 @@ const api = axios.create({
 // Interceptor untuk Authorization
 api.interceptors.request.use(
     (config) => {
-        const token = import.meta.env.VITE_APP_TOKEN;
+        const token = getCookie('token'); // ambil dari cookies
         if (token) {
+            // Jika token tidak ada, redirect ke halaman login
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -25,6 +26,13 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
 
 /**
  * Fungsi untuk mengirim request ke endpoint API
