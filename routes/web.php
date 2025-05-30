@@ -14,8 +14,23 @@ Route::get('/', function () {
 });
 
 Route::get('/login', function () {
-    return Inertia::render('Auth/LoginMaster');
+    return Inertia::render('Auth/Login');
 })->name('login');
+
+Route::get('/register', function () {
+    return abort(404);
+});
+
+
+// Route::middleware([
+//     'auth:sanctum',
+//     config('jetstream.auth_session'),
+//     'verified',
+// ])->group(function () {
+//     // Route::get('/dashboard', function () {
+//     //     return Inertia::render('Dashboard');
+//     // })->name('dashboard');
+// });
 
 Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/', fn () => Inertia::render('Dashboard/Show', ['url' => 'dashboard']))->name('dashboard');
@@ -30,15 +45,4 @@ Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/transaction', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('transaction');
     Route::get('/generate-product', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('generate');
     Route::get('/role-permission', fn () => Inertia::render('AssignRolePermission/Show', ['url' => 'role-permission']))->name('role-permission');
-
 });
-
-// Route::middleware([
-//     'auth:sanctum',
-//     config('jetstream.auth_session'),
-//     'verified',
-// ])->group(function () {
-//     Route::get('/dashboard', function () {
-//         return Inertia::render('Dashboard');
-//     })->name('dashboard');
-// });
