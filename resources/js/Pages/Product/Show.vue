@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, reactive, watch } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import BaseTable from "@/Components/BaseTable.vue";
@@ -130,10 +130,42 @@ function handleImageUpload(event) {
     }
   }
 
+  const barcodeQR = async (id) => {
+    if (!id) {
+      console.error("Invalid product ID");
+      return;
+    }
+
+    try {
+      const response = await apiRequest({
+        url: `products/${id}/barcode`,
+        method: "get",
+      });
+
+      if (response.status === 200 && response.data && response.data.data) {
+        const barcodePath = response.data.data;
+         window.open(barcodePath, '_blank'); // Buka di tab baru
+      } else {
+        console.error("Barcode data not found in response");
+      }
+
+    } catch (err) {
+      console.error("Failed to fetch barcode:", err);
+
+      if (err.response && err.response.data && err.response.data.errors) {
+        errors.value = err.response.data.errors;
+      } else {
+        errors.value = ["Unknown error occurred"];
+      }
+    }
+  };
+
+
   onMounted(() => {
     getCategories();
     getProduct();
   });
+
 
 </script>
 
@@ -176,13 +208,13 @@ function handleImageUpload(event) {
               v-model="searchQuery"
               type="text"
               id="table-search"
-              class="w-52 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 "
-              placeholder="Search for product"
+              class="w-72 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 "
+              placeholder="Search for product, category, color"
             />
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-5">
+        <!-- <div class="flex items-center justify-end gap-5">
           
           <button
             @click="applyFilters"
@@ -191,7 +223,7 @@ function handleImageUpload(event) {
             Filters
           </button>
           
-        </div>
+        </div> -->
       </div>
 
 <div class="relative w-full">
@@ -213,6 +245,12 @@ function handleImageUpload(event) {
                       class="text-red-600 hover:underline"
                   >
                       Remove
+                  </button>
+                  <button
+                      @click="barcodeQR(item.id)"
+                      class="text-green-600 hover:underline"
+                  >
+                      Barcode
                   </button>
               </template>
           </BaseTable>

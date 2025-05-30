@@ -14,20 +14,18 @@
 
     let dataPermission = ref([]);
     let dataRole = ref([]);
-    const selectedRole = ref([]);
+    const selectedRole = ref('');
     const selectedPermissions = ref([]);
-    const currentData = reactive({ id: null, name: "", email:"" });
+    const currentData = reactive({ id: null, name: "", email:"", role:"" });
+    const data = ref([]);
 
-    const filteredProducts = computed(() => {
-      if (!searchQuery.value) return user.value;
-      return user.value.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.emai.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const filteredUsers = computed(() => {
+      if (!searchQuery.value) return data.value;
+      return data.value.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        item.email.toLowerCase().includes(searchQuery.value.toLowerCase()) 
       );
     });
-
-    const data = ref([]);
 
     function openNewProductModal() {
       isModalOpen.value = true;
@@ -80,13 +78,9 @@
             currentData.id = userData.id;
             currentData.name = userData.name;
             currentData.email = userData.email;
-           
-            selectedRole.value = Array.isArray(userData.roles) && userData.roles.length > 0
-              ? user.roles[0].name
-              : "";
+            currentData.roles = userData.roles;
+            selectedRole.value = userData.roles;
 
-            console.log("Data user berhasil diambil:", userData);
-            console.log(userData);
           }
         } else {
           currentData.id = null;
@@ -101,26 +95,32 @@
       }
     };
 
-    const submitFormGiveRole = async () => {
-    
-      try {
-          // ASSIGN ROLE KE USER
-          await apiRequest({
-              url: `users/${currentData.id}/assign-role`,
-              method: "post",
-              data: {
-                  role: selectedRole.value, // 'admin', 'editor', dll
-              },
-          });
+  const submitFormGiveRole = async () => {
+   if (!selectedRole.value) return;
+    const isRoleExist = !!currentData.roles; // Misalnya currentData berisi informasi role sebelumnya
 
-          location.reload();
-      } catch (err) {
-          // console.error(err);
-          // if (err.response?.data?.errors) {
-          //     errors.value = err.response.data.errors;
-          // }
-      }
-  };
+    const url = isRoleExist
+        ? `users/${currentData.id}/update-role`
+        : `users/${currentData.id}/assign-role`;
+
+    const method = isRoleExist ? "put" : "post"; // sesuai RESTful
+
+    try {
+        await apiRequest({
+            url,
+            method,
+            data: {
+                role: selectedRole.value, // 'admin', 'editor', dll
+            },
+        });
+
+        location.reload();
+    } catch (err) {
+        console.error("Failed to update/assign role", err);
+        // Tambahkan error handling sesuai kebutuhan
+    }
+};
+
 
 
    onMounted(async () => {
@@ -162,44 +162,38 @@
       </div>
 
       <div class="pb-4">
-          <div class="flex justify-between mb-5 items-center">
-                <button
-                        @click="openNewProductModal"
-                        class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-                    >
-                        Add Role &amp; Permission
-                </button>
-
+          <div class="flex justify-end mb-5 items-center">
+            
                 <div>
-          <label for="table-search" class="sr-only">Search</label>
-          <div class="relative mt-1">
-            <div
-              class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"
-            >
-              <svg
-                class="w-4 h-4 text-gray-500 dark:text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 20 20"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                />
-              </svg>
-            </div>
-            <input
-              v-model="searchQuery"
-              type="text"
-              id="table-search"
-              class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-52 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search for items"
-            />
-          </div>
-        </div>
+                <label for="table-search" class="sr-only">Search</label>
+                <div class="relative mt-1">
+                  <div
+                    class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"
+                  >
+                    <svg
+                      class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 20 20"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    id="table-search"
+                    class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-52 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Search for users"
+                  />
+                </div>
+              </div>
             </div>
       </div>
 
@@ -220,7 +214,7 @@
           </thead>
           <tbody class="text-gray-600  h-[400px]">
             <tr
-              v-for="(user,key) in data"
+              v-for="(user,key) in filteredUsers"
               :key="key"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
@@ -241,7 +235,7 @@
 
               <td class="px-6 py-4">
                <button @click=actionClickEdit(user.id) class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
-                                    <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Remove</a></td>
+               </td>
               
             </tr>
           </tbody>
