@@ -157,14 +157,14 @@ const props = defineProps({
             :active="normalizedUrl === 'stock-in'"
           />
         </a>
-        <a href="/dashboard/stock-out">
+        <!-- <a href="/dashboard/stock-out">
           <SidebarItem
             icon="📤"
             title="Stock Out"
             to="/dashboard/stock-out"
             :active="normalizedUrl === 'stock-out'"
           />
-        </a>
+        </a> -->
         <a href="/dashboard/transaction">
           <SidebarItem
             icon="💳"

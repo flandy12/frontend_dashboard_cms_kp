@@ -4,6 +4,7 @@ import MasterLayout from "../MasterLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
+import sendTelegramNotification from '@/Telegram/telegramAPI.js';
 
 const props = defineProps({
     url: String,
@@ -159,7 +160,7 @@ const submitForm = async () => {
         size: selectedSize.value,
     };
 
-    console.log(isEditing.value);
+   
     try {
         if (isEditing.value) {
             const updatedData = {
@@ -187,7 +188,10 @@ const submitForm = async () => {
                     "Content-Type": "multipart/form-data",
                 }
             });
+
+            sendTelegramNotification('Berhasil Membuat Produk');
         }
+        
         closeModal();
         location.reload();
     } catch (err) {

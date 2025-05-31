@@ -149,7 +149,7 @@ const submitForm = async () => {
     }
 };
 
-  const barcodeQR = async (id) => {
+const barcodeQR = async (id) => {
     if (!id) {
       console.error("Invalid product ID");
       return;
@@ -177,7 +177,7 @@ const submitForm = async () => {
         errors.value = ["Unknown error occurred"];
       }
     }
-  };
+};
 
 const deleteProduct = async (id) => {
     const confirmDelete = confirm(
