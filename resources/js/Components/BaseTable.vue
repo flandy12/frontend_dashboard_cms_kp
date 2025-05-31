@@ -18,7 +18,7 @@ function isImage(value) {
 <template>
     <table class="w-full text-sm text-left text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
-            <tr>
+            <tr class="text-center">
                 <th scope="col" class="p-4">
                     <div class="flex items-center">
                         <input
@@ -31,9 +31,7 @@ function isImage(value) {
                         >
                     </div>
                 </th>
-                <th scope="col" class="p-4">
-                    No
-                </th>
+                <th scope="col" class="p-4">No</th>
                 <th v-for="col in columns" :key="col.key" class="px-6 py-3">
                     {{ col.label }}
                 </th>
@@ -63,20 +61,27 @@ function isImage(value) {
                     {{ key + 1 }}
                 </td>
 
-                <td v-for="col in columns" :key="col.key" class="px-6 py-4">
-                    
+                <td
+                    v-for="col in columns"
+                    :key="col.key"
+                    class="px-6 py-4 text-center align-middle"
+                >
                     <template v-if="isImage(item[col.key])">
-                        <img
-                            :src="item[col.key]"
-                            class="w-20 h-full object-cover"
-                            alt="Image"
-                        />
+                        <div class="flex justify-center">
+                            <img
+                                :src="item[col.key]"
+                                class="w-20 h-full object-cover"
+                                alt="Image"
+                            />
+                        </div>
                     </template>
                     <template v-else>
-                        {{ item[col.key] }}
+                        <div>
+                            {{ item[col.key] }}
+                        </div>
                     </template>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-6 py-4 text-center align-middle">
                     <slot name="actions" :item="item" />
                 </td>
             </tr>

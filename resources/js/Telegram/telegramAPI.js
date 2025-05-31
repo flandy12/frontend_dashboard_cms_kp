@@ -1,7 +1,7 @@
 import apiRequest from "@/Pages/API/main";
 
 // Menggunakan environment variable dari process.env
-export const sendTelegramNotification = async (message) => {
+const sendTelegramNotification = async (message) => {
     const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
     const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
@@ -27,3 +27,6 @@ export const sendTelegramNotification = async (message) => {
         console.error("Gagal mengirim pesan Telegram:", err);
     }
 };
+
+
+export default sendTelegramNotification;
