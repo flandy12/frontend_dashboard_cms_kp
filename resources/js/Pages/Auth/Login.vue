@@ -37,6 +37,12 @@ function setCookie(name, value, days) {
   document.cookie = `${name}=${value}; ${expires}; path=/`;
 }
 
+// Fungsi simpan data user ke localStorage
+function saveUserDataToCookie(user, days) {
+   const jsonStr = JSON.stringify(user);
+   setCookie('user_data', jsonStr, days);
+}
+
 const submit = async () => {
     try {
         const response = await apiRequest('/login', {
@@ -49,6 +55,9 @@ const submit = async () => {
 
         // Simpan token ke cookie jika login berhasil
         setCookie('token', response.access_token, 1);
+        // Simpan data user ke cookie
+        saveUserDataToCookie(response.data, 1);
+
 
         // Redirect ke dashboard
         window.location.href = '/dashboard';
