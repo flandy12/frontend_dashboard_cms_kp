@@ -312,7 +312,7 @@ onMounted(() => {
                       Edit
                   </button>
                   <button
-                      @click="deleteCategory(item.id)"
+                      @click="deleteProduct(item.id)"
                       class="text-red-600 hover:underline"
                   >
                       Remove
