@@ -36,6 +36,7 @@ Route::get('/register', function () {
 Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/', fn () => Inertia::render('Dashboard/Show', ['url' => 'dashboard']))->name('dashboard');
     Route::get('/user', fn () => Inertia::render('User/Show', ['url' => 'user']))->name('user');
+    Route::get('/user-profile', fn () => Inertia::render('User-profile/Show', ['url' => 'user-profile']))->name('user-profile');
     Route::get('/product', fn () => Inertia::render('Product/Show', ['url' => 'product']))->name('product');
     Route::get('/category', fn () => Inertia::render('Category/Show', ['url' => 'category']))->name('category');
     Route::get('/role', fn () => Inertia::render('Role/Show', ['url' => 'role']))->name('role');
