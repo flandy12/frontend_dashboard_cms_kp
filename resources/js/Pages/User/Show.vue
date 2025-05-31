@@ -71,7 +71,6 @@ const getUsers = async () => {
         });
         if (response.status == 200) {
             users.value = response.data;
-            console.log(response.data);
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);

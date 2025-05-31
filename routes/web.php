@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -45,4 +46,11 @@ Route::prefix('/dashboard')->name('dashboard.')->group(function () {
     Route::get('/transaction', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('transaction');
     Route::get('/generate-product', fn () => Inertia::render('Transaction/Show', ['url' => 'transaction']))->name('generate');
     Route::get('/role-permission', fn () => Inertia::render('AssignRolePermission/Show', ['url' => 'role-permission']))->name('role-permission');
+    Route::get('/product/detail/{id}', fn () => Inertia::render('Scan/Show', ['url' => 'scan']))->name('role-permission');
+
 });
+
+Route::get('/encrypt', function() {
+    dd(decrypt('eyJpdiI6IkhCVXBVZi95WERLS3hVVHZUZHZHTUE9PSIsInZhbHVlIjoiRjBsMGxPNTF2T3NZUWovL3VKYWg0UT09IiwibWFjIjoiMWYxNTBmNTQ3ZjllMjZkMWEwMTk0OGUzMTU1NDM4MWExYWFjYWJkMjUzMjQ5YTNlMjJlMDY3MzkwZjJmNjI4ZiIsInRhZyI6IiJ9'));
+} );
+

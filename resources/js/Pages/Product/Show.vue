@@ -152,39 +152,14 @@ const getProduct = async () => {
     }
 };
 
-// const submitForm = async () => {
-//     const formData = {
-//         ...currentData,
-//         category: selectedCategory.value,
-//         size: selectedSize.value,
-//     };
-//     console.log(formData);
-//     try {
-//         const response = await apiRequest({
-//             url: "products",
-//             method: "post",
-//             data: formData,
-//             headers: {
-//                 "Content-Type": "multipart/form-data",
-//             },
-//         });
-
-//         console.log(response);
-//         closeModal();
-//         location.reload();
-//     } catch (err) {
-//         console.error("Gagal mengambil produk:", err);
-//         errors.value = err.response.data.errors;
-//     }
-// };
-
 const submitForm = async () => {
     const formData = {
         ...currentData,
         category: selectedCategory.value,
         size: selectedSize.value,
     };
-    console.log(formData);
+
+    console.log(isEditing.value);
     try {
         if (isEditing.value) {
             const updatedData = {
@@ -193,23 +168,32 @@ const submitForm = async () => {
                 size: selectedSize.value,
                 imageUrl: null,
                 stock: String(currentData.stock),
+                _method : 'put'
             };
-            console.log(formData);
-            console.log(typeof String(currentData.stock));
             await apiRequest({
                 url: `products/${currentData.id}`,
-                method: "put",
+                method: "post",
                 data: updatedData,
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
+        } else {
+            const response = await apiRequest({
+                url: "products",
+                method: "post",
+                data: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                }
+            });
         }
         closeModal();
-        // location.reload();
+        location.reload();
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
-        errors.value = err.response.data.errors;
+        console.log(err.response);
+        // errors.value = err.response.data.errors;
     }
 };
 
@@ -286,7 +270,7 @@ onMounted(() => {
                     @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
-                    New Product
+                   New Product
                 </button>
             </div>
             <input
@@ -368,7 +352,7 @@ onMounted(() => {
                                 class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                             >
                                 <h3 class="text-xl font-semibold text-gray-900">
-                                    New Product
+                                     {{ isEditing ? 'Edit Product' : 'New Product' }}
                                 </h3>
                                 <button
                                     type="button"

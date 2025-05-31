@@ -1,17 +1,31 @@
 <script setup>
+import { useRouter } from 'vue-router'
+import { watch } from 'vue'
+
+const router = useRouter()
+
 const props = defineProps({
   icon: String,
   title: String,
   to: String,
-  active: Boolean,
-});
+  active: Boolean
+})
 
-import { useRouter } from 'vue-router';
-const router = useRouter();
-
+// Navigasi saat di-klik
 function navigate() {
-  router.push(props.to);
+  if (props.to) {
+    router.push(props.to)
+  }
 }
+
+// Contoh penggunaan watch untuk memantau perubahan aktif
+watch(
+  () => props,
+  (newVal, oldVal) => {
+    console.log(`SidebarItem "${props.title}" aktif:`, newVal)
+    // Bisa ditambahkan side effect lainnya di sini
+  }
+)
 </script>
 
 <template>

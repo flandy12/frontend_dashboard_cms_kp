@@ -1,45 +1,51 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import SidebarItem from '@/Components/SitebarItem.vue';
-import { useRoute } from 'vue-router';
+  import { onMounted, ref, watch, computed } from 'vue';
+  import SidebarItem from '@/Components/SitebarItem.vue';
 
 const props = defineProps({
   url: String,
 });
 
-const isSidebarOpen = ref(false);
 
-onMounted(() => {
-  const el = document.getElementById('pagination-table')
-  if (el && typeof DataTable !== 'undefined') {
-    new DataTable(el, {
-      paging: true,
-      perPage: 5,
-      perPageSelect: [5, 10, 15, 20, 25],
-      sortable: false
-    });
+
+  const isSidebarOpen = ref(false);
+  const currentUrl = ref(props.url);
+
+  // Fungsi logout
+  const actionLogout = () => {
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = '/login';
   }
 
-  // Hanya path (tanpa domain)  
-  getRoute();
-  
-});
+  const normalizedUrl = computed(() => {
+     if (!currentUrl.value) return '';
+      const parts = currentUrl.value.split('/').filter(Boolean); // filter untuk buang string kosong
+      return parts.length ? parts[parts.length - 1] : '';
+  });
 
-const getRoute = () => {
-  const path = window.location.pathname;
-  const segments = path.split('/').filter(Boolean); // Menghapus elemen kosong
-  const lastSegment = segments[segments.length - 1];
-  route.value = lastSegment;
-};
-
-const actionLogout = () => {
-  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  window.location.href = '/login'
-}
+  // Watch untuk memantau perubahan props.url
+  watch(() => props.url, (newVal) => {
+    console.log('URL prop changed:', newVal);
+    currentUrl.value = newVal;
+  });
 
 
-console.log(props.url);
+  // On mounted (contoh inisialisasi)
+  onMounted(() => {
+    // Inisialisasi currentUrl
+    currentUrl.value = props.url;
 
+    // Inisialisasi DataTable (jika ada)
+    const el = document.getElementById('pagination-table');
+    if (el && typeof DataTable !== 'undefined') {
+      new DataTable(el, {
+        paging: true,
+        perPage: 5,
+        perPageSelect: [5, 10, 15, 20, 25],
+        sortable: false,
+      });
+    }
+  });
 </script>
 
 <template>
@@ -78,99 +84,99 @@ console.log(props.url);
             </div>
 
         <!-- Menu -->
-        <nav class="mt-6 space-y-1 px-2">
-          <a href="/dashboard">
-            <SidebarItem
-              icon="📊"
-              title="Dashboard"
-              to="/"
-              :active="props.url === '/'"
-            />
-          </a>
-          <a href="/dashboard/user">
-            <SidebarItem
-              icon="📊"
-              title="Users"
-              to="/dashboard/user"
-              :active="props.url === 'user'"
-            />
-          </a>
-          <a href="/dashboard/product">
-            <SidebarItem
-              icon="📦"
-              title="Products"
-              to="/dashboard/product"
-              :active="props.url === 'product'"
-            />
-          </a>
-          <a href="/dashboard/category">
-            <SidebarItem
-              icon="📁"
-              title="Categories"
-              to="/dashboard/category"
-              :active="props.url === 'category'"
-            />
-          </a>
-          <a href="/dashboard/role-permission">
-            <SidebarItem
-              icon="💳"
-              title="Assign Role & Permission"
-              to="/dashboard/role-permission"
-              :active="props.url === 'role-permission'"
-            />
-          </a>
-          <a href="/dashboard/role">
-            <SidebarItem
-              icon="👤"
-              title="Roles"
-              to="/dashboard/role"
-              :active="props.url === 'role'"
-            />
-          </a>
-          <a href="/dashboard/permission">
-            <SidebarItem
-              icon="🔐"
-              title="Permissions"
-              to="/dashboard/permission"
-              :active="props.url === 'permission'"
-            />
-          </a>
-          <a href="/dashboard/report">
-            <SidebarItem
-              icon="📈"
-              title="Reports"
-              to="/dashboard/report"
-              :active="props.url === 'report'"
-            />
-          </a>
-          <a href="/dashboard/stock-in">
-            <SidebarItem
-              icon="📥"
-              title="Stock In"
-              to="/dashboard/stock-in"
-              :active="props.url === 'stock-in'"
-            />
-          </a>
-          <a href="/dashboard/stock-out">
-            <SidebarItem
-              icon="📤"
-              title="Stock Out"
-              to="/dashboard/stock-out"
-              :active="props.url === 'stock-out'"
-            />
-          </a>
-          <a href="/dashboard/transaction">
-            <SidebarItem
-              icon="💳"
-              title="Transactions"
-              to="/dashboard/transaction"
-              :active="props.url === 'transaction'"
-            />
-          </a>
-          <a class="bg-red-300" @click="actionLogout">
-            <SidebarItem icon="" title="Logout" />
-          </a>
-        </nav>
+      <nav class="mt-6 space-y-1 px-2">
+        <a href="/dashboard">
+          <SidebarItem
+            icon="📊"
+            title="Dashboard"
+            to="/dashboard"
+            :active="normalizedUrl === 'dashboard'"
+          />
+        </a>
+        <a href="/dashboard/user">
+          <SidebarItem
+            icon="📊"
+            title="User"
+            to="/dashboard/user"
+            :active="normalizedUrl === 'user'"
+          />
+        </a>
+        <a href="/dashboard/product">
+          <SidebarItem
+            icon="📦"
+            title="Products"
+            to="/dashboard/product"
+            :active="normalizedUrl === 'product'"
+          />
+        </a>
+        <a href="/dashboard/category">
+          <SidebarItem
+            icon="📁"
+            title="Category"
+            to="/dashboard/category"
+            :active="normalizedUrl === 'category'"
+          />
+        </a>
+        <a href="/dashboard/role-permission">
+          <SidebarItem
+            icon="💳"
+            title="Assign Role & Permission"
+            to="/dashboard/role-permission"
+            :active="normalizedUrl === 'role-permission'"
+          />
+        </a>
+        <a href="/dashboard/role">
+          <SidebarItem
+            icon="👤"
+            title="Roles"
+            to="/dashboard/role"
+            :active="normalizedUrl === 'role'"
+          />
+        </a>
+        <a href="/dashboard/permission">
+          <SidebarItem
+            icon="🔐"
+            title="Permissions"
+            to="/dashboard/permission"
+            :active="normalizedUrl === 'permission'"
+          />
+        </a>
+        <a href="/dashboard/report">
+          <SidebarItem
+            icon="📈"
+            title="Reports"
+            to="/dashboard/report"
+            :active="normalizedUrl === 'report'"
+          />
+        </a>
+        <a href="/dashboard/stock-in">
+          <SidebarItem
+            icon="📥"
+            title="Stock In"
+            to="/dashboard/stock-in"
+            :active="normalizedUrl === 'stock-in'"
+          />
+        </a>
+        <a href="/dashboard/stock-out">
+          <SidebarItem
+            icon="📤"
+            title="Stock Out"
+            to="/dashboard/stock-out"
+            :active="normalizedUrl === 'stock-out'"
+          />
+        </a>
+        <a href="/dashboard/transaction">
+          <SidebarItem
+            icon="💳"
+            title="Transactions"
+            to="/dashboard/transaction"
+            :active="normalizedUrl === 'transaction'"
+          />
+        </a>
+        <button class="w-full text-left bg-red-300" @click="actionLogout">
+          <SidebarItem icon="" title="Logout" />
+        </button>
+      </nav>
       </div>
     </aside>
 

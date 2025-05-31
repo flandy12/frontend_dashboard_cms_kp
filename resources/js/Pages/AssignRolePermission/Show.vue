@@ -51,10 +51,8 @@
                 method: "get"
             });
 
-            console.log(response);
             if (response.status == 200) {
                 data.value = response.data;
-                console.log(response);
             } 
       } catch (err) {
         console.log("Gagal mengambil role", err);
@@ -134,7 +132,6 @@
 
           if (permission.status === 200) {
             dataPermission.value = permission.data;
-            console.log("Permissions:", permission.data);
           }
 
           const role = await apiRequest({
@@ -144,7 +141,6 @@
 
           if (role.status === 200) {
             dataRole.value = role.data;
-            console.log("Roles:", role.data);
           }
         } catch (err) {
           console.error("Gagal mengambil permissions/roles:", err);
