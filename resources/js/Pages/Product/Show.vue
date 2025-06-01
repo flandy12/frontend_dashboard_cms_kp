@@ -23,6 +23,7 @@ const columns = [
 const searchQuery = ref("");
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const isSubmitting = ref(false);
 
 const selectedCategory = ref("");
 const selectedSize = ref("");
@@ -154,6 +155,8 @@ const getProduct = async () => {
 };
 
 const submitForm = async () => {
+    isSubmitting.value = true;
+
     const formData = {
         ...currentData,
         category: selectedCategory.value,
@@ -197,7 +200,8 @@ const submitForm = async () => {
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
         console.log(err.response);
-        // errors.value = err.response.data.errors;
+        errors.value = err.response.data.errors;
+        isSubmitting.value = false;
     }
 };
 
@@ -663,7 +667,7 @@ onMounted(() => {
                                             type="submit"
                                             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                                         >
-                                            Submit
+                                            {{ isSubmitting ? 'Submitting...' : 'Submit' }}
                                         </button>
                                     </div>
                                 </form>

@@ -22,6 +22,7 @@ const columns = [
 const searchQuery = ref("");
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const basePrice = ref(0);
 
 const selectedCategory = ref("");
 const selectedSize = ref("");
@@ -40,6 +41,7 @@ const currentData = reactive({
 
 
 const errors = ref([]);
+const count =  ref(1);
 
 
 const openModal = async (product) => {
@@ -99,6 +101,9 @@ const getProduct = async (id) => {
             currentData.size = response.data.size;
             currentData.color = response.data.color;
             currentData.stock = response.data.stock;
+
+            currentData.price = formatRupiah(response.data.price);
+            basePrice.value = response.data.price; // simpan angka aslinya
         }
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
@@ -197,6 +202,7 @@ const deleteProduct = async (id) => {
         alert("Gagal menghapus product.");
     }
 };
+
 const imagePreview = computed(() => {
     if (currentData.image instanceof File) {
         return URL.createObjectURL(currentData.image);
@@ -244,6 +250,28 @@ const submitStockOut = async () => {
     }
 };
 
+function increment() {
+  count.value++;
+  const total = basePrice.value * count.value;
+  currentData.price = formatRupiah(total);
+}
+
+function decrement() {
+   if (count.value > 1) {
+        count.value--;
+        const total = basePrice.value * count.value;
+        currentData.price = formatRupiah(total);
+    }
+}
+
+function formatRupiah(number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(number)
+}
+
 
 onMounted(() => {
     const path = window.location.pathname; 
@@ -262,10 +290,11 @@ onMounted(() => {
             <div class="">
                 <!-- Modal content -->
                 <div class="relative rounded-lg ">
-                    <div class="p-4 md:p-5">
-                        <h3 class="text-xl font-semibold text-gray-900">
-                            Detail Product
-                        </h3>
+                    <div class="mb-5">
+                        <label  for="default-input" class="block mb-2 text-sm font-medium text-gray-900">
+                             Product Name
+                        </label>
+                        <p class="text-2xl"> {{currentData.name}}</p>
                     </div>
                     <!-- Modal body -->
                     <div class="space-y-4">
@@ -275,11 +304,7 @@ onMounted(() => {
                         >   
                         
                             <div class="mb-5">
-                                <label
-                                    class="block my-5 text-sm font-medium text-gray-900"
-                                >
-                                    Image
-                                </label>
+                             
                                 <div
                                     class="flex justify-center items-center p-5 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
                                 >
@@ -295,23 +320,9 @@ onMounted(() => {
                               
                             </div>
 
-
-                            <div class="mb-5">
-                                <label
-                                    for="default-input"
-                                    class="block mb-2 text-sm font-medium text-gray-900"
-                                >
-                                    Product Name
-                                </label>
-                                <p class="text-2xl"> {{currentData.name}}
-                              </p>
-                            </div>
-
                             <div class="mb-5"></div>
 
-                            <div
-                                class="mb-5 flex justify-between gap-5"
-                            >
+                            <div class="mb-5 flex justify-between gap-5">
                                 <div class="w-full">
                                     <label
                                         for="default-input"
@@ -343,26 +354,63 @@ onMounted(() => {
                                         Stock
                                     </label>
                                     <p class="font-bold">{{ currentData.stock }}</p>
-                                    
                                 </div>
+
+                           
                             </div>
 
-
                             <!-- Modal footer -->
-                            <div
-                                class="flex items-center pt-6 border-t"
-                            >
-                               <div>
-                                <button
+                            <div class="flex items-center pt-6 border-t"
+                                >
+                                <div class="w-full">
+                                    <label
+                                        for="default-input"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                    >
+                                        Price
+                                    </label>
+                                    <p class="font-bold text-2xl">{{ currentData.price }}</p>
+                                </div>
+                    
+                                <div class="flex items-center space-x-4">
+                                    <button
+                                    @click="decrement"
+                                    class=" bg-zinc-300 text-black px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                                    >
+                                    -
+                                    </button>
+
+                                    <span class="text-xl font-bold w-10 text-center">{{ count }}</span>
+
+                                    <button
+                                    @click="increment"
+                                    class=" bg-zinc-300 text-black px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                                    >
+                                    +
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5 grap-5 space-x-5 flex justify-center">
+                              <button
                                     @click="openStockOutModal"
                                     data-modal-hide="default-modal"
                                     type="submit"
                                     class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
                                 >
-                                    Stock out
-                                </button>
-                                </div>
-                            </div>
+                                    CHECKOUT
+                              </button>
+
+                              <button
+                                    @click="openStockOutModal"
+                                    data-modal-hide="default-modal"
+                                    type="submit"
+                                    class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                                >
+                                    Stock In
+                              </button>
+                              </div>
+
                         </div>
                     </div>
                 </div>

@@ -11,7 +11,7 @@ const props = defineProps({
 
 const users = ref([]);
 const columns = [
-    { label: "Profile", key: "profile_photo_url" },
+    { label: "Profile", key: "profile_url" },
     { label: "Name", key: "name" },
     { label: "Email", key: "email" },
 ];
@@ -160,7 +160,7 @@ onMounted(() => {
                     <div>
                         <button>Select All</button>
                     </div>
-                    <BaseTable :data="users" :columns="columns">
+                    <BaseTable :data="users.data" :columns="columns">
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"
