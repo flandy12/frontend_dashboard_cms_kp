@@ -1,68 +1,41 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
+import apiRequest from '@/Pages/API/main.js'
 
 const props = defineProps({
   url: String,
 });
 
-const products = ref([
-  {
-    id: 1,
-    name: 'Apple MacBook Pro 17"',
-    color: 'Silver',
-    category: 'Laptop',
-    accessories: 'Yes',
-    available: 'Yes',
-    price: '$2999',
-    weight: '3.0 lb.',
-    status: 'Stock Out',
-    date: '2023-10-01',
-  },
-  {
-    id: 2,
-    name: 'Microsoft Surface Pro',
-    color: 'White',
-    category: 'Laptop PC',
-    accessories: 'No',
-    available: 'Yes',
-    price: '$1999',
-    weight: '1.0 lb.',
-    status: 'Stock Out',
-    date: '2023-10-01',
-  },
-  // ... tambahkan produk lainnya
-]);
-
 const searchQuery = ref('');
 const isModalOpen = ref(false);
+const data = ref('');
 
 const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value;
-  return products.value.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
+  if (!searchQuery.value) return data.value;
+  return data.value.filter(item =>
+    item.quantity.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.created_at.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
-function exportCSV() {
-  // contoh sederhana export CSV
-  let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += 'Product Name,Color,Category,Accessories,Available,Price,Weight\n';
-  products.value.forEach(p => {
-    const row = [p.name, p.color, p.category, p.accessories, p.available, p.price, p.weight].join(",");
-    csvContent += row + "\n";
-  });
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "products.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+// function exportCSV() {
+//   // contoh sederhana export CSV
+//   let csvContent = "data:text/csv;charset=utf-8,";
+//   csvContent += 'Product Name,Color,Category,Accessories,Available,Price,Weight\n';
+//   products.value.forEach(p => {
+//     const row = [p.name, p.color, p.category, p.accessories, p.available, p.price, p.weight].join(",");
+//     csvContent += row + "\n";
+//   });
+//   const encodedUri = encodeURI(csvContent);
+//   const link = document.createElement("a");
+//   link.setAttribute("href", encodedUri);
+//   link.setAttribute("download", "products.csv");
+//   document.body.appendChild(link);
+//   link.click();
+//   document.body.removeChild(link);
+// }
 
 function openNewProductModal() {
   isModalOpen.value = true;
@@ -76,13 +49,34 @@ function applyFilters() {
   // Add your filter logic here
   console.log('Filter button clicked');
 }
+
+const getData = async() => {
+  try {
+        const response = await apiRequest({
+            url: "stockmovements/stockin",
+            method: "get",
+        });
+
+        if (response.status === 200) {
+            data.value = response.data.data;
+            console.log(response.data.data);
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
+
+onMounted(() => {
+    getData();
+});
+
 </script>
 
 <template>
   <MasterLayout :url="props.url">
     <div class="container mx-auto">
       <div class="flex justify-between mb-5 items-center">
-        <h1 class="text-2xl font-bold">Stock Out</h1>
+        <h1 class="text-2xl font-bold">Stock In</h1>
       </div>
 
       <div class="pb-4 flex justify-between">
@@ -151,24 +145,24 @@ function applyFilters() {
           </thead>
           <tbody class="text-gray-600">
             <tr
-              v-for="product in filteredProducts"
-              :key="product.id"
+              v-for="item in data"
+              :key="item.id"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
               <td class="w-4 p-4">
-                {{ product.id }}
+                {{ item.id }}
               </td>
               <th
                 class="px-6 py-4 font-medium whitespace-nowrap"
                 scope="row"
               >
-                {{ product.name }}
+                {{ item.product_id }}
               </th>
-              <td class="px-6 py-4">{{ product.category }}</td>
+              <!-- <td class="px-6 py-4">{{ quantity.category }}</td>
               <td class="px-6 py-4">{{ product.accessories }}</td>
               <td class="px-6 py-4">{{ product.available }}</td>
               <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
-              <td class="px-6 py-4">{{ product.date }}</td>
+              <td class="px-6 py-4">{{ product.date }}</td> -->
             </tr>
           </tbody>
         </table>

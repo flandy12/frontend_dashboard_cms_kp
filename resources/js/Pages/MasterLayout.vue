@@ -201,12 +201,10 @@ const getRoute = () => {
                           />
                         </a> -->
 
-                        <a href="/logout" class="bg-red-300">
+                        <a @click="actionLogout" class="bg-red-300">
                             <SidebarItem
                                 icon=""
                                 title="Logout"
-                                to="/logout"
-                                :active="props.url === 'logout'"
                             />
                         </a>
                     </div>

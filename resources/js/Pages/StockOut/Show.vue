@@ -1,67 +1,39 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
+import apiRequest from '@/Pages/API/main.js'
 
 const props = defineProps({
   url: String,
 });
 
-const products = ref([
-  {
-    id: 1,
-    name: 'Apple MacBook Pro 17"',
-    color: 'Silver',
-    category: 'Laptop',
-    accessories: 'Yes',
-    available: 'Yes',
-    price: '$2999',
-    weight: '3.0 lb.',
-    status: 'Stock Out',
-    date: '2023-10-01',
-  },
-  {
-    id: 2,
-    name: 'Microsoft Surface Pro',
-    color: 'White',
-    category: 'Laptop PC',
-    accessories: 'No',
-    available: 'Yes',
-    price: '$1999',
-    weight: '1.0 lb.',
-    status: 'Stock Out',
-    date: '2023-10-01',
-  },
-  // ... tambahkan produk lainnya
-]);
-
 const searchQuery = ref('');
 const isModalOpen = ref(false);
+const data = ref('');
 
 const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value;
-  return products.value.filter(product =>
+  if (!searchQuery.value) return data.value;
+  return data.value.filter(product =>
     product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
+    product.quantity.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
-function exportCSV() {
-  // contoh sederhana export CSV
-  let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += 'Product Name,Color,Category,Accessories,Available,Price,Weight\n';
-  products.value.forEach(p => {
-    const row = [p.name, p.color, p.category, p.accessories, p.available, p.price, p.weight].join(",");
-    csvContent += row + "\n";
-  });
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "products.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const exportData = async() =>{
+    try {
+        const response = await apiRequest({
+            url: "stockmovements/stockout",
+            method: "get",
+        });
+
+        if (response.status === 200) {
+            data.value = response.data.data;
+            // console.log(response.data.data);
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
 }
 
 function openNewProductModal() {
@@ -76,6 +48,27 @@ function applyFilters() {
   // Add your filter logic here
   console.log('Filter button clicked');
 }
+
+const getData = async() => {
+  try {
+        const response = await apiRequest({
+            url: "stockmovements/stockout",
+            method: "get",
+        });
+
+        if (response.status === 200) {
+            data.value = response.data.data;
+            // console.log(response.data.data);
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
+
+onMounted(() => {
+    getData();
+});
+
 </script>
 
 <template>
@@ -119,7 +112,7 @@ function applyFilters() {
 
         <div class="mb-4 flex justify-end gap-5">
          <button
-            @click="exportCSV"
+            @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
           >
             Export Table
@@ -144,8 +137,7 @@ function applyFilters() {
               <th class="px-6 py-3">Product name</th>
               <th class="px-6 py-3">Color</th>
               <th class="px-6 py-3">Category</th>
-              <th class="px-6 py-3">Accessories</th>
-              <th class="px-6 py-3">Available</th>
+              <th class="px-6 py-3">Qty</th>
               <th class="px-6 py-3">Status</th>
               <th class="px-6 py-3 text-center">Date</th>
             </tr>
@@ -163,14 +155,13 @@ function applyFilters() {
                 class="px-6 py-4 font-medium whitespace-nowrap"
                 scope="row"
               >
-                {{ product.name }}
+                {{ product.product.name }}
               </th>
-              <td class="px-6 py-4">{{ product.color }}</td>
-              <td class="px-6 py-4">{{ product.category }}</td>
-              <td class="px-6 py-4">{{ product.accessories }}</td>
-              <td class="px-6 py-4">{{ product.available }}</td>
-              <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
-              <td class="px-6 py-4">{{ product.date }}</td>
+              <td class="px-6 py-4">{{ product.product.color }}</td>
+              <td class="px-6 py-4">{{ product.product.category.name }}</td>
+              <td class="px-6 py-4">{{ product.quantity }}</td>
+              <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">Stock Out</span></td>
+              <td class="px-6 py-4">{{ product.created_at }}</td>
             </tr>
           </tbody>
         </table>
