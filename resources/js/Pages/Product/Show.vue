@@ -5,6 +5,10 @@ import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
 import sendTelegramNotification from "@/Telegram/telegramAPI.js";
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
     url: String,
@@ -251,6 +255,14 @@ const getProductId =  async(id) => {
 }
 
 onMounted(() => {
+    
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+
     getCategories();
     getProduct();
 });
@@ -262,6 +274,7 @@ onMounted(() => {
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Product</h1>
                 <button
+                    v-if="hasPermission(permission, 'product create')"
                     @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
@@ -296,18 +309,21 @@ onMounted(() => {
                 <BaseTable :data="filteredProducts" :columns="columns">
                     <template #actions="{ item }">
                         <button
+                            v-if="hasPermission(permission, 'product edit')"
                             @click="getProductId(item.id)"
                             class="text-blue-600 hover:underline mr-2"
                         >
                             Edit
                         </button>
                         <button
+                            v-if="hasPermission(permission, 'product delete')"
                             @click="deleteProduct(item.id)"
                             class="text-red-600 hover:underline"
                         >
                             Remove
                         </button>
                         <button
+                            v-if="hasPermission(permission, 'product edit')"
                             @click="barcodeQR(item.id)"
                             class="text-green-600 hover:underline"
                         >

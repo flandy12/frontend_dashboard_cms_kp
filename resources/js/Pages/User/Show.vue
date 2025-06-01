@@ -4,10 +4,14 @@ import MasterLayout from "../MasterLayout.vue";
 import Modal from "@Components/Modal.vue";
 import apiRequest from "../API/main";
 import BaseTable from "@/Components/BaseTable.vue";
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
 
 const props = defineProps({
     url: String,
 });
+
+// Check Permission
+const permission = ref({});
 
 const users = ref([]);
 const columns = [
@@ -104,6 +108,14 @@ const deleteUser = async (id) => {
 };
 
 onMounted(() => {
+
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+
     getUsers();
 });
 </script>
@@ -114,6 +126,7 @@ onMounted(() => {
                 <h1 class="text-2xl font-bold">User</h1>
                 <button
                     @click="openModal(null)"
+                    v-if="hasPermission(permission, 'user create')"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
                     New User
@@ -164,11 +177,13 @@ onMounted(() => {
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"
+                                v-if="hasPermission(permission, 'user edit')"
                                 class="text-blue-600 hover:underline mr-2"
                             >
                                 Edit
                             </button>
                             <button
+                                v-if="hasPermission(permission, 'user delete')"
                                 @click="deleteUser(item.id)"
                                 class="text-red-600 hover:underline"
                             >

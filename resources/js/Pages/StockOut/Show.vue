@@ -2,7 +2,11 @@
 import { ref, computed, onMounted } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import apiRequest from '@/Pages/API/main.js'
+import apiRequest from '@/Pages/API/main.js';
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
   url: String,
@@ -73,6 +77,14 @@ const getData = async() => {
 
 onMounted(() => {
     getData();
+
+    const userData = getCookie("user_data");
+
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
 });
 
 </script>
@@ -120,15 +132,17 @@ onMounted(() => {
          <button
             @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
+            v-if="hasPermission(permission, 'stock_out export')"
+
           >
             Export
           </button>
-          <button
+          <!-- <button
             @click="applyFilters"
             class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
           >
             Filters
-          </button>
+          </button> -->
           
         </div>
       </div>

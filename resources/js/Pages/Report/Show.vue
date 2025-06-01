@@ -1,25 +1,39 @@
 <script setup>
-    import { ref } from 'vue';
+    import { ref, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '@/Components/Modal.vue';
+    import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+    // Check Permission
+    const permission = ref({});
         
-        const props = defineProps({
-            url: String,
-        });
+    const props = defineProps({
+        url: String,
+    });
 
-        const isModalOpen = ref(false);
-        function openNewProductModal() {
-        isModalOpen.value = true;
-        }
+    const isModalOpen = ref(false);
+    function openNewProductModal() {
+    isModalOpen.value = true;
+    }
 
-        function closeModal() {
-        isModalOpen.value = false;
-        }
+    function closeModal() {
+    isModalOpen.value = false;
+    }
 
-        function applyFilters() {
-        // Add your filter logic here
-        console.log('Filter button clicked');
-        }
+    function applyFilters() {
+    // Add your filter logic here
+    console.log('Filter button clicked');
+    }
+
+    onMounted(() => {
+        
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+    });
 </script>
 <template>
   <MasterLayout :url="props.url">
@@ -34,6 +48,7 @@
                 </div>
                 <div class="mb-4 flex justify-end gap-5">
                 <button
+                    v-if="hasPermission(permission, 'report export')"
                     @click="exportCSV"
                     class="border text-black text-sm px-4 py-2 rounded border-gray-800"
                 >

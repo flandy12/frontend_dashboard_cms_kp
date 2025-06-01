@@ -9,6 +9,8 @@ const props = defineProps({
     id: String,
 });
 
+const menu = ref('');
+
 const columns = [
     { label: "Image", key: "image" },
     { label: "Category", key: "category" },
@@ -28,6 +30,8 @@ const selectedCategory = ref("");
 const selectedSize = ref("");
 const categories = ref([]);
 const products = ref([]);
+const selectedPayment = ref('');
+
 const currentData = reactive({
     name: "",
     category: "",
@@ -39,10 +43,8 @@ const currentData = reactive({
     price: "",
 });
 
-
 const errors = ref([]);
 const count =  ref(1);
-
 
 const openModal = async (product) => {
     isEditing.value = !!product;
@@ -215,39 +217,63 @@ const imagePreview = computed(() => {
 const stockOutModalOpen = ref(false);
 const stockOutQuantity = ref(1);
 
-const openStockOutModal = () => {
+const openModalMaster = (data) => {
     stockOutQuantity.value = 1;
     stockOutModalOpen.value = true;
+    menu.value = data;
+    console.log(menu.value);
 };
 
 const closeStockOutModal = () => {
     stockOutModalOpen.value = false;
 };
 
-const submitStockOut = async () => {
+const submit = async (data) => {
     if (stockOutQuantity.value <= 0 || stockOutQuantity.value > currentData.stock) {
         alert("Invalid quantity");
         return;
     }
 
-    try {
-        const response = await apiRequest({
-            url: `stockmovements/stockout`,
-            method: "post",
-            data: {
-                product_id : currentData.id,
-                quantity: stockOutQuantity.value,
-            },
-        });
+    if(menu == 'Checkout') {
+         try {
+            const response = await apiRequest({
+                url: `stockmovements/stockin`,
+                method: "post",
+                data: {
+                    product_id : currentData.id,
+                    quantity: stockOutQuantity.value,
+                },
+            });
 
-        // Refresh product info
-        await getProduct(currentData.id);
-        closeStockOutModal();
-        alert("Stock updated successfully");
-    } catch (err) {
-        console.error("Stock out failed:", err);
-        alert("Failed to update stock.");
+            // Refresh product info
+            await getProduct(currentData.id);
+            closeStockOutModal();
+            alert("Stock updated successfully");
+        } catch (err) {
+            console.error("Stock out failed:", err);
+            alert("Failed to update stock.");
+        }
+    } else {
+         try {
+            const response = await apiRequest({
+                url: `stockmovements/stockin`,
+                method: "post",
+                data: {
+                    product_id : currentData.id,
+                    quantity: stockOutQuantity.value,
+                },
+            });
+
+            // Refresh product info
+            await getProduct(currentData.id);
+            closeStockOutModal();
+            alert("Stock updated successfully");
+        } catch (err) {
+            console.error("Stock out failed:", err);
+            alert("Failed to update stock.");
+        }
     }
+   
 };
 
 function increment() {
@@ -286,7 +312,7 @@ onMounted(() => {
    <div class="w-full flex justify-center bg-zinc-50 py-20">
    
         <!-- Main modal -->
-        <div id="" class="bg-slate-50 rounded-xl w-full max-w-xl shadow-xl p-6  border border-gray-200  ">
+        <div class="bg-slate-50 rounded-xl w-full max-w-xl shadow-xl p-6  border border-gray-200  ">
             <div class="">
                 <!-- Modal content -->
                 <div class="relative rounded-lg ">
@@ -298,10 +324,7 @@ onMounted(() => {
                     </div>
                     <!-- Modal body -->
                     <div class="space-y-4">
-                        <div
-                            class="mx-auto"
-                           
-                        >   
+                        <div class="mx-auto">   
                         
                             <div class="mb-5">
                              
@@ -355,8 +378,6 @@ onMounted(() => {
                                     </label>
                                     <p class="font-bold">{{ currentData.stock }}</p>
                                 </div>
-
-                           
                             </div>
 
                             <!-- Modal footer -->
@@ -393,16 +414,16 @@ onMounted(() => {
                             
                             <div class="mt-5 grap-5 space-x-5 flex justify-center">
                               <button
-                                    @click="openStockOutModal"
+                                    @click="openModalMaster('Checkout')"
                                     data-modal-hide="default-modal"
                                     type="submit"
                                     class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
                                 >
-                                    CHECKOUT
+                                    Checkout
                               </button>
 
                               <button
-                                    @click="openStockOutModal"
+                                    @click="openModalMaster('Stock In')"
                                     data-modal-hide="default-modal"
                                     type="submit"
                                     class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
@@ -417,19 +438,33 @@ onMounted(() => {
             </div>
         </div>
     </div>
-     <!-- Stock Out Modal -->
+     <!-- Stock In Modal -->
     <Modal :show="stockOutModalOpen" @close="closeStockOutModal">
         <div class="p-6 rounded-lg w-full mx-auto">
-            <h2 class="text-lg font-bold mb-4 text-gray-800">Stock Out</h2>
+            <h2 class="text-lg font-bold mb-4 text-gray-800">{{ menu }}</h2>
             <p class="mb-2">Current stock: <strong>{{ currentData.stock }}</strong></p>
-            <label class="block mb-2 text-sm font-medium text-gray-700">Quantity to remove</label>
-            <input
-                type="number"
-                v-model="stockOutQuantity"
-                min="1"
-                :max="currentData.stock"
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            
+            <div v-if="menu == 'Stock In'">
+                <label class="block mb-2 text-sm font-medium text-gray-700">Quantity to stock in</label>
+                <input
+                    type="number"
+                    v-model="stockOutQuantity"
+                    min="1"
+                    :max="currentData.stock"
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            <div v-if="menu == 'Checkout'">
+                <label for="payment">Pilih Metode Pembayaran:</label>
+                <select v-model="selectedPayment" id="payment" class="ms-5 rounded">
+                    <option disabled value="">-- Pilih --</option>
+                    <option value="cash">Cash</option>
+                    <option value="qr">Trasfer</option>
+                </select>
+            </div>
+
+
             <div class="flex justify-end gap-2 mt-6">
                 <button
                     @click="closeStockOutModal"
@@ -438,7 +473,7 @@ onMounted(() => {
                     Cancel
                 </button>
                 <button
-                    @click="submitStockOut"
+                    @click="submit(menu)"
                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
                 >
                     Confirm
