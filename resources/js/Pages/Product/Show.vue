@@ -4,7 +4,7 @@ import MasterLayout from "../MasterLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
-import sendTelegramNotification from '@/Telegram/telegramAPI.js';
+import sendTelegramNotification from "@/Telegram/telegramAPI.js";
 
 const props = defineProps({
     url: String,
@@ -163,7 +163,6 @@ const submitForm = async () => {
         size: selectedSize.value,
     };
 
-   
     try {
         if (isEditing.value) {
             const updatedData = {
@@ -172,7 +171,7 @@ const submitForm = async () => {
                 size: selectedSize.value,
                 imageUrl: null,
                 stock: String(currentData.stock),
-                _method : 'put'
+                _method: "put",
             };
             await apiRequest({
                 url: `products/${currentData.id}`,
@@ -189,12 +188,12 @@ const submitForm = async () => {
                 data: formData,
                 headers: {
                     "Content-Type": "multipart/form-data",
-                }
+                },
             });
 
-            sendTelegramNotification('Berhasil Membuat Produk');
+            sendTelegramNotification("Berhasil Membuat Produk");
         }
-        
+
         closeModal();
         location.reload();
     } catch (err) {
@@ -205,35 +204,34 @@ const submitForm = async () => {
     }
 };
 
-  const barcodeQR = async (id) => {
+const barcodeQR = async (id) => {
     if (!id) {
-      console.error("Invalid product ID");
-      return;
+        console.error("Invalid product ID");
+        return;
     }
 
     try {
-      const response = await apiRequest({
-        url: `products/${id}/barcode`,
-        method: "get",
-      });
+        const response = await apiRequest({
+            url: `products/${id}/barcode`,
+            method: "get",
+        });
 
-      if (response.status === 200 && response.data && response.data.data) {
-        const barcodePath = response.data.data;
-         window.open(barcodePath, '_blank'); // Buka di tab baru
-      } else {
-        console.error("Barcode data not found in response");
-      }
-
+        if (response.status === 200 && response.data && response.data.data) {
+            const barcodePath = response.data.data;
+            window.open(barcodePath, "_blank"); // Buka di tab baru
+        } else {
+            console.error("Barcode data not found in response");
+        }
     } catch (err) {
-      console.error("Failed to fetch barcode:", err);
+        console.error("Failed to fetch barcode:", err);
 
-      if (err.response && err.response.data && err.response.data.errors) {
-        errors.value = err.response.data.errors;
-      } else {
-        errors.value = ["Unknown error occurred"];
-      }
+        if (err.response && err.response.data && err.response.data.errors) {
+            errors.value = err.response.data.errors;
+        } else {
+            errors.value = ["Unknown error occurred"];
+        }
     }
-  };
+};
 
 const deleteProduct = async (id) => {
     const confirmDelete = confirm(
@@ -266,7 +264,6 @@ onMounted(() => {
     getCategories();
     getProduct();
 });
-
 </script>
 
 <template>
@@ -278,17 +275,17 @@ onMounted(() => {
                     @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
-                   New Product
+                    New Product
                 </button>
             </div>
             <input
-              v-model="searchQuery"
-              type="text"
-              id="table-search"
-              class="w-72 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 "
-              placeholder="Search for product, category, color"
+                v-model="searchQuery"
+                type="text"
+                id="table-search"
+                class="w-72 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Search for product, category, color"
             />
-          </div>
+        </div>
 
         <!-- <div class="flex items-center justify-end gap-5">
           
@@ -301,53 +298,83 @@ onMounted(() => {
           
         </div> -->
 
-<div class="relative w-full">
-  <p class="text-end mb-4 pr-4">Select All</p>
+        <div class="relative w-full">
+            <p class="text-end mb-4 pr-4">Select All</p>
 
-    <!-- Scrollable Table Wrapper -->
-      <div class="w-full overflow-x-auto">
+            <!-- Scrollable Table Wrapper -->
+            <div class="w-full overflow-x-auto">
+                <BaseTable :data="filteredProducts" :columns="columns">
+                    <template #actions="{ item }">
+                        <button
+                            @click="openModal(item)"
+                            class="text-blue-600 hover:underline mr-2"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            @click="deleteProduct(item.id)"
+                            class="text-red-600 hover:underline"
+                        >
+                            Remove
+                        </button>
+                        <button
+                            @click="barcodeQR(item.id)"
+                            class="text-green-600 hover:underline"
+                        >
+                            Barcode
+                        </button>
+                    </template>
+                </BaseTable>
 
-          <BaseTable :data="filteredProducts" :columns="columns">
-              <template #actions="{ item }">
-                  <button
-                      @click="openModal(item)"
-                      class="text-blue-600 hover:underline mr-2"
-                  >
-                      Edit
-                  </button>
-                  <button
-                      @click="deleteProduct(item.id)"
-                      class="text-red-600 hover:underline"
-                  >
-                      Remove
-                  </button>
-                  <button
-                      @click="barcodeQR(item.id)"
-                      class="text-green-600 hover:underline"
-                  >
-                      Barcode
-                  </button>
-              </template>
-          </BaseTable>
-
-        </div>
-      </div>
-
-        <div class="flex flex-col items-center mt-5">
-            <!-- Help text -->
-            <span class="text-sm text-gray-700">
-                Showing <span class="font-semibold text-gray-900">1</span> to <span class="font-semibold text-gray-900">10</span> of <span class="font-semibold text-gray-900">100</span> Entries
-            </span>
-            <!-- Buttons -->
-            <div class="inline-flex mt-2 xs:mt-0">
-            <button class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900">
-                Prev
-            </button>
-            <button class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900 ">
-                Next
-            </button>
+                <!-- Scrollable Table Wrapper -->
+                <div class="w-full overflow-x-auto">
+                    <BaseTable :data="filteredProducts" :columns="columns">
+                        <template #actions="{ item }">
+                            <button
+                                @click="openModal(item)"
+                                class="text-blue-600 hover:underline mr-2"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                @click="deleteCategory(item.id)"
+                                class="text-red-600 hover:underline"
+                            >
+                                Remove
+                            </button>
+                            <button
+                                @click="barcodeQR(item.id)"
+                                class="text-green-600 hover:underline"
+                            >
+                                Barcode
+                            </button>
+                        </template>
+                    </BaseTable>
+                </div>
             </div>
-        </div>
+
+            <div class="flex flex-col items-center mt-5">
+                <!-- Help text -->
+                <span class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-semibold text-gray-900">1</span> to
+                    <span class="font-semibold text-gray-900">10</span> of
+                    <span class="font-semibold text-gray-900">100</span> Entries
+                </span>
+                <!-- Buttons -->
+                <div class="inline-flex mt-2 xs:mt-0">
+                    <button
+                        class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900"
+                    >
+                        Prev
+                    </button>
+                    <button
+                        class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
 
             <Modal :show="isModalOpen" @close="isModalOpen = false">
                 <!-- Main modal -->
@@ -360,7 +387,11 @@ onMounted(() => {
                                 class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                             >
                                 <h3 class="text-xl font-semibold text-gray-900">
-                                     {{ isEditing ? 'Edit Product' : 'New Product' }}
+                                    {{
+                                        isEditing
+                                            ? "Edit Product"
+                                            : "New Product"
+                                    }}
                                 </h3>
                                 <button
                                     type="button"
@@ -465,7 +496,7 @@ onMounted(() => {
                                             Image
                                         </label>
                                         <div
-                                            class="flex items-center block p-5 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                                            class="flex items-center p-5 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
                                         >
                                             <!-- <div class="mt-2 max-w-xs">
                                                 <img
@@ -676,5 +707,6 @@ onMounted(() => {
                     </div>
                 </div>
             </Modal>
+        </div>
     </MasterLayout>
 </template>

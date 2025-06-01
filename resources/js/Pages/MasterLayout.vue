@@ -1,50 +1,50 @@
 <script setup>
-
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed } from "vue";
 import SidebarItem from "@/Components/SitebarItem.vue";
 
-  const props = defineProps({
-      url: String,
-  });
+const props = defineProps({
+    url: String,
+});
 
+const isSidebarOpen = ref(false);
+const currentUrl = ref(props.url);
 
-  const isSidebarOpen = ref(false);
-  const currentUrl = ref(props.url);
-
-  // Fungsi logout
-  const actionLogout = () => {
+// Fungsi logout
+const actionLogout = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = '/login';
-  }
+    window.location.href = "/login";
+};
 
-  const normalizedUrl = computed(() => {
-     if (!currentUrl.value) return '';
-      const parts = currentUrl.value.split('/').filter(Boolean); // filter untuk buang string kosong
-      return parts.length ? parts[parts.length - 1] : '';
-  });
+const normalizedUrl = computed(() => {
+    if (!currentUrl.value) return "";
+    const parts = currentUrl.value.split("/").filter(Boolean); // filter untuk buang string kosong
+    return parts.length ? parts[parts.length - 1] : "";
+});
 
-  // Watch untuk memantau perubahan props.url
-  watch(() => props.url, (newVal) => {
-    console.log('URL prop changed:', newVal);
-    currentUrl.value = newVal;
-  });
+// Watch untuk memantau perubahan props.url
+watch(
+    () => props.url,
+    (newVal) => {
+        console.log("URL prop changed:", newVal);
+        currentUrl.value = newVal;
+    }
+);
 
+// // On mounted (contoh inisialisasi)
+// onMounted(() => {
+//   // Inisialisasi currentUrl
+//   currentUrl.value = props.url;
 
-  // // On mounted (contoh inisialisasi)
-  // onMounted(() => {
-  //   // Inisialisasi currentUrl
-  //   currentUrl.value = props.url;
-
-  //   // Inisialisasi DataTable (jika ada)
-  //   const el = document.getElementById('pagination-table');
-  //   if (el && typeof DataTable !== 'undefined') {
-  //     new DataTable(el, {
-  //       paging: true,
-  //       perPage: 5,
-  //       perPageSelect: [5, 10, 15, 20, 25],
-  //       sortable: false,
-  //     });
-  //   }
+//   // Inisialisasi DataTable (jika ada)
+//   const el = document.getElementById('pagination-table');
+//   if (el && typeof DataTable !== 'undefined') {
+//     new DataTable(el, {
+//       paging: true,
+//       perPage: 5,
+//       perPageSelect: [5, 10, 15, 20, 25],
+//       sortable: false,
+//     });
+//   }
 onMounted(() => {
     const el = document.getElementById("pagination-table");
     if (el && typeof DataTable !== "undefined") {
@@ -66,7 +66,6 @@ const getRoute = () => {
     const lastSegment = segments[segments.length - 1];
     route.value = lastSegment;
 };
-
 </script>
 
 <template>
@@ -78,11 +77,17 @@ const getRoute = () => {
             <div>
                 <!-- Brand -->
                 <div class="p-4 font-bold text-lg border-b border-gray-200">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-green-500 rounded-full"></div>
-                        <span>Body Shop</span>
+                    <div class="p-2 w-3/4">
+                        <a href="/dashboard/user-profile">
+                            <div class="flex items-center space-x-2">
+                                <div
+                                    class="w-8 h-8 bg-green-500 rounded-full"
+                                ></div>
+                                <span>Body Shop</span>
+                            </div>
+                            <p class="text-sm text-gray-500">Nicole (Admin)</p>
+                        </a>
                     </div>
-                    <p class="text-sm text-gray-500">Nicole (Admin)</p>
                 </div>
 
                 <!-- Menu -->
@@ -211,5 +216,4 @@ const getRoute = () => {
             <slot />
         </main>
     </div>
-
 </template>
