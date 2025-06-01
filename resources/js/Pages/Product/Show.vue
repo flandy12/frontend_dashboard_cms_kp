@@ -29,6 +29,7 @@ const selectedCategory = ref("");
 const selectedSize = ref("");
 const categories = ref([]);
 const products = ref([]);
+
 const currentData = reactive({
     name: "",
     category: "",
@@ -56,32 +57,6 @@ const filteredProducts = computed(() => {
                 .includes(searchQuery.value.toLowerCase())
     );
 });
-
-function exportCSV() {
-    // contoh sederhana export CSV
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent +=
-        "Product Name,Color,Category,Accessories,Available,Price,Weight\n";
-    products.value.forEach((p) => {
-        const row = [
-            p.name,
-            p.color,
-            p.category,
-            p.accessories,
-            p.available,
-            p.price,
-            p.weight,
-        ].join(",");
-        csvContent += row + "\n";
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "products.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 const openModal = async (product) => {
     isEditing.value = !!product;
@@ -260,6 +235,21 @@ const imagePreview = computed(() => {
     return null;
 });
 
+const getProductId =  async(id) => {
+      try {
+        const response = await apiRequest({
+            url: `products/${id}`,
+            method: "get",
+        });
+
+        if (response.status === 200) {
+            openModal(response.data);
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
+
 onMounted(() => {
     getCategories();
     getProduct();
@@ -306,7 +296,7 @@ onMounted(() => {
                 <BaseTable :data="filteredProducts" :columns="columns">
                     <template #actions="{ item }">
                         <button
-                            @click="openModal(item.id)"
+                            @click="getProductId(item.id)"
                             class="text-blue-600 hover:underline mr-2"
                         >
                             Edit
