@@ -306,7 +306,7 @@ onMounted(() => {
                 <BaseTable :data="filteredProducts" :columns="columns">
                     <template #actions="{ item }">
                         <button
-                            @click="openModal(item)"
+                            @click="openModal(item.id)"
                             class="text-blue-600 hover:underline mr-2"
                         >
                             Edit
@@ -326,31 +326,6 @@ onMounted(() => {
                     </template>
                 </BaseTable>
 
-                <!-- Scrollable Table Wrapper -->
-                <div class="w-full overflow-x-auto">
-                    <BaseTable :data="filteredProducts" :columns="columns">
-                        <template #actions="{ item }">
-                            <button
-                                @click="openModal(item)"
-                                class="text-blue-600 hover:underline mr-2"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                @click="deleteCategory(item.id)"
-                                class="text-red-600 hover:underline"
-                            >
-                                Remove
-                            </button>
-                            <button
-                                @click="barcodeQR(item.id)"
-                                class="text-green-600 hover:underline"
-                            >
-                                Barcode
-                            </button>
-                        </template>
-                    </BaseTable>
-                </div>
             </div>
 
             <div class="flex flex-col items-center mt-5">

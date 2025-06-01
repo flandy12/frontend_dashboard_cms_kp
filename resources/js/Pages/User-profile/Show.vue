@@ -16,15 +16,20 @@ function getCookie(name) {
 }
 
 const userID = ref("");
+const user = ref({});
 const role = ref("");
-const showPassword = ref([false]);
+const isEditing = ref(false);
+const showPassword = ref(false);
 const errors = ref([]);
+
 const isEditMode = ref(false);
+
 const currentUser = reactive({
     id: null,
     name: "",
     email: "",
-    password: "",
+    password: null,
+    profile_url : ""
 });
 
 const toggleEdit = () => {
@@ -35,27 +40,31 @@ const toggleEdit = () => {
     }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (id) => {
+
+    isEditing.value = true;
+
     const formData = {
         name: currentUser.name,
         email: currentUser.email,
-        // password: currentUser.password,
+        _method: "PUT", // 
     };
-    console.log(formData);
-    // return;
-    try {
-        await apiRequest({
-            url: `users/${currentUser.id}`,
-            method: "post",
-            _method: "put",
-            data: formData,
-        });
-        location.reload();
-    } catch (err) {
-        errors.value = err.response.data.errors;
-    }
-    console.log(currentUser);
+    
+    if (isEditing.value) {
+        
+            const ressponse =  await apiRequest({
+            url: `users/${id}`,
+            method: "POST", // pakai POST + _method untuk spoofing PUT
+                data: formData,
+            });
+
+            console.log(ressponse);
+            isEditMode.value = false;
+            await getUserById(id); // refresh data user
+        } 
+ 
 };
+
 
 const getUserById = async (id) => {
     try {
@@ -65,7 +74,11 @@ const getUserById = async (id) => {
         });
         if (response.status == 200) {
             user.value = response.data;
-            console.log("isi data user", response.data);
+            // console.log(user.value);
+            // currentUser.value = response.data;
+            currentUser.name = response.data.name;
+            currentUser.email = response.data.email;
+            
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);
@@ -75,10 +88,6 @@ const getUserById = async (id) => {
 onMounted(() => {
     const userData = getCookie("user_data");
     const parsedUsers = JSON.parse(userData);
-    user.value = parsedUsers;
-
-    console.log(parsedUsers);
-    return;
     getUserById(parsedUsers.id);
 });
 </script>
@@ -96,9 +105,9 @@ onMounted(() => {
                                 class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm max-h-max"
                             >
                                 <a href="#">
-                                    <div class="ro">
+                                    <div class="flex justify-center">
                                         <img
-                                            :src="currentUser.profile_url"
+                                            :src="user.profile_url"
                                             class="w-20 h-full object-cover"
                                             alt="User Image"
                                         />
@@ -109,14 +118,14 @@ onMounted(() => {
                                         <h5
                                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                                         >
-                                            {{ currentUser.name }}
+                                            {{ user.name }}
                                         </h5>
                                     </a>
-                                    <!-- <p
+                                    <p
                                         class="mb-3 font-normal text-gray-700 dark:text-gray-400"
                                     >
                                         {{ user.role }}
-                                    </p> -->
+                                    </p>
                                 </div>
                             </div>
                             <div
@@ -142,7 +151,7 @@ onMounted(() => {
                                         </a>
                                     </div>
                                     <div class="p-4 md:p-5 space-y-4">
-                                        <form @submit.prevent="onSubmit">
+                                        <form @submit.prevent="onSubmit(user.id)">
                                             <div class="mb-5">
                                                 <label
                                                     for="name"

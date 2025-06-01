@@ -80,7 +80,6 @@ const getUsers = async () => {
         });
         if (response.status == 200) {
             users.value = response.data.data;
-            console.log(response.data.data);
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);
@@ -161,7 +160,7 @@ onMounted(() => {
                     <div>
                         <button>Select All</button>
                     </div>
-                    <BaseTable :data="users.data" :columns="columns">
+                    <BaseTable :data="users" :columns="columns">
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"

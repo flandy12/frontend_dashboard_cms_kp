@@ -8,6 +8,7 @@ const props = defineProps({
 
 const isSidebarOpen = ref(false);
 const currentUrl = ref(props.url);
+const user = ref({});
 
 // Fungsi logout
 const actionLogout = () => {
@@ -45,6 +46,15 @@ watch(
 //       sortable: false,
 //     });
 //   }
+
+function getCookie(name) {
+    const match = document.cookie.match(
+        new RegExp("(^| )" + name + "=([^;]+)")
+    );
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+}
+
 onMounted(() => {
     const el = document.getElementById("pagination-table");
     if (el && typeof DataTable !== "undefined") {
@@ -58,7 +68,13 @@ onMounted(() => {
 
     // Hanya path (tanpa domain)
     getRoute();
+
+    const userData = getCookie("user_data");
+    const parsedUsers = JSON.parse(userData);
+    user.value = parsedUsers;
+
 });
+
 
 const getRoute = () => {
     const path = window.location.pathname;
@@ -77,15 +93,22 @@ const getRoute = () => {
             <div>
                 <!-- Brand -->
                 <div class="p-4 font-bold text-lg border-b border-gray-200">
-                    <div class="p-2 w-3/4">
+                    <div class="p-2 w-full">
                         <a href="/dashboard/user-profile">
                             <div class="flex items-center space-x-2">
-                                <div
+                                <!-- <div
                                     class="w-8 h-8 bg-green-500 rounded-full"
-                                ></div>
-                                <span>Body Shop</span>
+                                ></div> -->
+
+                                 <img
+                                    :src="user.profile_url"
+                                    class="w-10 h-full object-cover"
+                                    alt="User Image"
+                                />
+
+                                <span class="uppercase">Inventory App</span>
                             </div>
-                            <p class="text-sm text-gray-500">Nicole (Admin)</p>
+                            <p class="text-sm mt-5 text-gray-500">{{ user.name }} {{user.role}}</p>
                         </a>
                     </div>
                 </div>
