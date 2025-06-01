@@ -11,7 +11,7 @@ const props = defineProps({
 
 const users = ref([]);
 const columns = [
-    { label: "Profile", key: "profile_photo_url" },
+    { label: "Profile", key: "profile_url" },
     { label: "Name", key: "name" },
     { label: "Email", key: "email" },
 ];
@@ -79,7 +79,8 @@ const getUsers = async () => {
             method: "get",
         });
         if (response.status == 200) {
-            users.value = response.data;
+            users.value = response.data.data;
+            console.log(response.data.data);
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);

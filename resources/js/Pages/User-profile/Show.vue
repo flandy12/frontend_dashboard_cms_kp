@@ -1,11 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import apiRequest from "../API/main";
 
 const props = defineProps({
     url: String,
 });
+
 function getCookie(name) {
     const match = document.cookie.match(
         new RegExp("(^| )" + name + "=([^;]+)")
@@ -14,24 +15,57 @@ function getCookie(name) {
     return null;
 }
 
-const users = ref([]);
+const userID = ref("");
+const role = ref("");
 const showPassword = ref([false]);
 const errors = ref([]);
+const isEditMode = ref(false);
 const currentUser = reactive({
+    id: null,
     name: "",
     email: "",
     password: "",
 });
 
-const getUsers = async () => {
+const toggleEdit = () => {
+    isEditMode.value = !isEditMode.value;
+
+    if (isEditMode.value) {
+        Object.assign(currentUser, user.value);
+    }
+};
+
+const onSubmit = async () => {
+    const formData = {
+        name: currentUser.name,
+        email: currentUser.email,
+        // password: currentUser.password,
+    };
+    console.log(formData);
+    // return;
+    try {
+        await apiRequest({
+            url: `users/${currentUser.id}`,
+            method: "post",
+            _method: "put",
+            data: formData,
+        });
+        location.reload();
+    } catch (err) {
+        errors.value = err.response.data.errors;
+    }
+    console.log(currentUser);
+};
+
+const getUserById = async (id) => {
     try {
         const response = await apiRequest({
-            url: "/users",
+            url: `/users/${id}`,
             method: "get",
         });
         if (response.status == 200) {
-            users.value = response.data;
-            console.log(response.data);
+            user.value = response.data;
+            console.log("isi data user", response.data);
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);
@@ -39,9 +73,13 @@ const getUsers = async () => {
 };
 
 onMounted(() => {
-    const token = getCookie("token");
-    console.log(token);
-    getUsers();
+    const userData = getCookie("user_data");
+    const parsedUsers = JSON.parse(userData);
+    user.value = parsedUsers;
+
+    console.log(parsedUsers);
+    return;
+    getUserById(parsedUsers.id);
 });
 </script>
 <template>
@@ -60,8 +98,8 @@ onMounted(() => {
                                 <a href="#">
                                     <div class="ro">
                                         <img
-                                            src="/asset/img/asset1.jpg"
-                                            class=""
+                                            :src="currentUser.profile_url"
+                                            class="w-20 h-full object-cover"
                                             alt="User Image"
                                         />
                                     </div>
@@ -71,14 +109,14 @@ onMounted(() => {
                                         <h5
                                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                                         >
-                                            Wahyu Rifia Rizki
+                                            {{ currentUser.name }}
                                         </h5>
                                     </a>
-                                    <p
+                                    <!-- <p
                                         class="mb-3 font-normal text-gray-700 dark:text-gray-400"
                                     >
-                                        Admin
-                                    </p>
+                                        {{ user.role }}
+                                    </p> -->
                                 </div>
                             </div>
                             <div
@@ -93,25 +131,35 @@ onMounted(() => {
                                         </h5>
                                         <a
                                             href="#"
-                                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                            @click.prevent="toggleEdit"
+                                            :class="` w-[80px] inline-flex justify-center items-center px-3 py-2 text-sm font-medium text-center text-white rounded ${
+                                                isEditMode
+                                                    ? 'bg-red-600 hover:bg-red-700'
+                                                    : 'bg-blue-700 hover:bg-blue-800'
+                                            }`"
                                         >
-                                            Edit
+                                            {{ isEditMode ? "Cancel" : "Edit" }}
                                         </a>
                                     </div>
                                     <div class="p-4 md:p-5 space-y-4">
-                                        <form @submit.prevent="submitForm">
+                                        <form @submit.prevent="onSubmit">
                                             <div class="mb-5">
                                                 <label
                                                     for="name"
                                                     class="block mb-2 text-sm font-medium text-gray-900"
-                                                    >Name</label
+                                                >
+                                                    {{
+                                                        isEditMode
+                                                            ? "New Name"
+                                                            : "Name"
+                                                    }}</label
                                                 >
                                                 <input
                                                     type="text"
                                                     id="name"
                                                     v-model="currentUser.name"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                                    placeholder="Wahyu Rifia Rizki"
+                                                    :readonly="!isEditMode"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                                                 />
                                                 <ul
                                                     v-if="errors"
@@ -126,16 +174,21 @@ onMounted(() => {
                                             </div>
                                             <div class="mb-5">
                                                 <label
-                                                    for="name"
+                                                    for="email"
                                                     class="block mb-2 text-sm font-medium text-gray-900"
-                                                    >Email</label
+                                                >
+                                                    {{
+                                                        isEditMode
+                                                            ? "New Email"
+                                                            : "Email"
+                                                    }}</label
                                                 >
                                                 <input
                                                     type="text"
-                                                    id="name"
+                                                    id="email"
                                                     v-model="currentUser.email"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                                    placeholder="unknown@gmail.com"
+                                                    :readonly="!isEditMode"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                                                 />
                                                 <ul
                                                     v-if="errors"
@@ -153,7 +206,11 @@ onMounted(() => {
                                                     for="password"
                                                     class="block mb-2 text-sm font-medium text-gray-900"
                                                 >
-                                                    Password
+                                                    {{
+                                                        isEditMode
+                                                            ? "New Password"
+                                                            : "Password"
+                                                    }}
                                                 </label>
                                                 <input
                                                     :type="
@@ -165,8 +222,8 @@ onMounted(() => {
                                                     v-model="
                                                         currentUser.password
                                                     "
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10"
-                                                    placeholder="******"
+                                                    :readonly="!isEditMode"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 pr-10"
                                                 />
                                                 <button
                                                     type="button"
@@ -226,81 +283,8 @@ onMounted(() => {
                                                 </ul>
                                             </div>
 
-                                            <div class="mb-5">
-                                                <label
-                                                    class="block my-5 text-sm font-medium text-gray-900"
-                                                >
-                                                    Image
-                                                </label>
-                                                <div
-                                                    class="flex items-center p-5 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
-                                                >
-                                                    <!-- <div class="mt-2 max-w-xs">
-                                                <img
-                                                    v-if="currentData.image"
-                                                    :src="
-                                                        URL.createObjectURL(
-                                                            currentData.image
-                                                        )
-                                                    "
-                                                    alt="Preview"
-                                                    class="rounded"
-                                                />
-                                                <img
-                                                    v-else-if="
-                                                        currentData.imageUrl
-                                                    "
-                                                    :src="currentData.imageUrl"
-                                                    alt="Preview"
-                                                    class="rounded"
-                                                />
-                                                <img
-                                                    v-else
-                                                    src="/path/to/placeholder-image.png"
-                                                    alt="Placeholder"
-                                                    class="rounded opacity-50"
-                                                />
-                                            </div> -->
-                                                    <div
-                                                        class="mt-2 mr-3 max-w-xs"
-                                                    >
-                                                        <img
-                                                            v-if="imagePreview"
-                                                            :src="imagePreview"
-                                                            alt="Preview"
-                                                            class="rounded max-w-full"
-                                                        />
-                                                    </div>
-                                                    <input
-                                                        type="file"
-                                                        @change="
-                                                            handleImageUpload
-                                                        "
-                                                    />
-                                                </div>
-                                                <p
-                                                    class="mt-1 text-sm text-gray-500"
-                                                >
-                                                    SVG, PNG, JPG, MP4, or GIF
-                                                    (MAX. 800x400px).
-                                                </p>
-                                                <!-- Preview gambar -->
-
-                                                <!-- Display sub_title errors -->
-                                                <ul
-                                                    v-if="errors"
-                                                    class="text-red-500 text-sm mt-1"
-                                                >
-                                                    <li
-                                                        v-for="(
-                                                            error, index
-                                                        ) in errors.image"
-                                                    >
-                                                        {{ error }}
-                                                    </li>
-                                                </ul>
-                                            </div>
                                             <button
+                                                v-if="isEditMode"
                                                 type="submit"
                                                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             >
