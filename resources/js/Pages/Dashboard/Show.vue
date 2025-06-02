@@ -3,71 +3,67 @@ import MasterLayout from "../MasterLayout.vue";
 import { ref, onMounted } from "vue";
 import { Clock, CalendarDays, AlertCircle, Zap } from "lucide-vue-next";
 import { computed } from "vue";
+import apiRequest from "../API/main";
+import { getCookie } from "@/Pages/API/main.js";
 
-const products = [
-    { name: "Project 1", stock: 10 },
-    { name: "Project 2", stock: 8 },
-    { name: "Project 3", stock: 5 },
-    { name: "Project 4", stock: 2 },
-    { name: "Project 4", stock: 2 },
+const props = defineProps({
+    url: String,
+});
 
-    { name: "Project 4", stock: 2 },
-
-    { name: "Project 4", stock: 2 },
-
-    { name: "Project 4", stock: 2 },
-
-    { name: "Project 4", stock: 2 },
-];
+const products = ref([]);
 
 // Hitung persentase dan warna bar
 const stockBars = computed(() =>
-    products.map((p) => {
-        const percentage = Math.min((p.stock / 10) * 100, 100);
+    products.value.map((product) => {
+        const percentage = Math.min((product.stock / 10) * 100, 100);
         let color = "bg-green-500";
-        if (p.stock <= 5) {
+        if (product.stock <= 5) {
             color = "bg-red-500";
-        } else if (p.stock < 10) {
+        } else if (product.stock < 20) {
             color = "bg-yellow-400";
         }
         return {
-            ...p,
+            ...product,
             percentage,
             color,
         };
     })
 );
+const permission = ref({});
+const totalProduct = ref(0);
+const totalStockIn = ref(0);
+const totalStockOut = ref(0);
 
-const tasks = [
+const tasks = computed(() => [
     {
-        title: "Priority Task",
-        count: "23/34 Task",
+        title: "Products",
+        count: `${totalProduct.value} / 10 Product`,
         icon: Zap,
         iconBg: "bg-green-600",
         bgColor: "bg-green-50",
     },
     {
-        title: "Upcoming Task",
-        count: "3/34 Task",
+        title: "StockIn Update",
+        count: `${totalStockIn.value} / 10 Stock In`,
         icon: CalendarDays,
         iconBg: "bg-gray-400",
         bgColor: "bg-blue-50",
     },
     {
-        title: "Overdue Task",
-        count: "10/34 Task",
+        title: "StockOut Update",
+        count: `${totalStockOut.value} / 10 Stock Out`,
         icon: AlertCircle,
         iconBg: "bg-indigo-600",
         bgColor: "bg-indigo-50",
     },
-    {
-        title: "Pending Task",
-        count: "2/34 Task",
-        icon: Clock,
-        iconBg: "bg-red-500",
-        bgColor: "bg-orange-50",
-    },
-];
+    // {
+    //     title: "Pending Task",
+    //     count: "2/34 Task",
+    //     icon: Clock,
+    //     iconBg: "bg-red-500",
+    //     bgColor: "bg-orange-50",
+    // },
+]);
 
 const summary = ref([
     { label: "Overview", count: 1552, color: "bg-blue-100 text-blue-700" },
@@ -78,7 +74,56 @@ const summary = ref([
 
 const highestACoS = ref([]);
 
-onMounted(async () => {
+const getProducts = async () => {
+    try {
+        const response = await apiRequest({
+            url: "products",
+            method: "get",
+        });
+        if (response.status === 200) {
+            products.value = response.data.data.map((item) => ({
+                name: item.name ?? "",
+                stock: item.stock ?? "",
+            }));
+
+            console.log(products.value);
+
+            totalProduct.value = response.data.data.length;
+        }
+    } catch (err) {
+        console.log("Gagal mengambil products", err);
+    }
+};
+
+const getStockIn = async () => {
+    try {
+        const response = await apiRequest({
+            url: "stockmovements/stockin",
+            method: "get",
+        });
+        if (response.status === 200) {
+            totalStockIn.value = response.data.data.length;
+        }
+    } catch (err) {
+        console.log("Gagal mengambil Stock In", err);
+    }
+};
+
+const getStockOut = async () => {
+    try {
+        const response = await apiRequest({
+            url: "stockmovements/stockout",
+            method: "get",
+        });
+        if (response.status === 200) {
+            totalStockOut.value = response.data.data.length;
+        }
+    } catch (err) {
+        console.log("Gagal mengambil Stock Out", err);
+    }
+};
+
+onMounted(() => {
     // Fetch data here
     // Example:
     highestACoS.value = [
@@ -88,11 +133,21 @@ onMounted(async () => {
         { campaign: "B087C75GQJ", spend: 45.85, sales: 113.0, acos: 119.45 },
         { campaign: "House Number", spend: 54.0, sales: 99.55, acos: 85.0 },
     ];
+
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+    getProducts();
+    getStockIn();
+    getStockOut();
 });
 </script>
 
 <template>
-    <MasterLayout>
+    <MasterLayout :url="props.url">
         <div class="container mx-auto">
             <!-- Add your main content here -->
 
@@ -134,7 +189,7 @@ onMounted(async () => {
                 >
                     <!-- Summary Card -->
                     <div class="bg-white rounded-xl shadow p-5">
-                        <h2 class="text-lg font-bold mb-4">Summary</h2>
+                        <h2 class="text-lg font-bold mb-4">Best Seller</h2>
                         <ul>
                             <li
                                 v-for="item in summary"
@@ -151,7 +206,7 @@ onMounted(async () => {
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm row-span-2">
                         <h3 class="text-md font-semibold mb-4">
-                            Urgently Task
+                            Stock Updated
                         </h3>
                         <div class="space-y-3">
                             <div v-for="(item, idx) in stockBars" :key="idx">
@@ -182,9 +237,7 @@ onMounted(async () => {
 
                     <!-- Table: Highest ACoS Campaigns -->
                     <div class="bg-white rounded-xl shadow p-5 overflow-auto">
-                        <h2 class="text-lg font-bold mb-4">
-                            Highest ACoS campaigns
-                        </h2>
+                        <h2 class="text-lg font-bold mb-4">Transactions</h2>
                         <table class="min-w-full text-sm">
                             <thead class="text-left text-gray-500 border-b">
                                 <tr>
