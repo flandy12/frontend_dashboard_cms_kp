@@ -15,8 +15,8 @@ function getCookie(name) {
     return null;
 }
 
-const userID = ref("");
-const role = ref("");
+const user = ref({});
+
 const showPassword = ref([false]);
 const errors = ref([]);
 const isEditMode = ref(false);
@@ -39,22 +39,21 @@ const onSubmit = async () => {
     const formData = {
         name: currentUser.name,
         email: currentUser.email,
+        _method: "put",
         // password: currentUser.password,
     };
     console.log(formData);
-    // return;
+    return;
     try {
         await apiRequest({
-            url: `users/${currentUser.id}`,
+            url: `/users/${currentUser.id}`,
             method: "post",
-            _method: "put",
             data: formData,
         });
         location.reload();
     } catch (err) {
         errors.value = err.response.data.errors;
     }
-    console.log(currentUser);
 };
 
 const getUserById = async (id) => {
@@ -64,8 +63,12 @@ const getUserById = async (id) => {
             method: "get",
         });
         if (response.status == 200) {
-            user.value = response.data;
-            console.log("isi data user", response.data);
+            Object.assign(currentUser, {
+                id: response?.data?.data?.id ?? null,
+                name: response?.data?.data?.name ?? "",
+                email: response?.data?.data?.email ?? "",
+            });
+            console.log("isi data user", response.data.data);
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);
@@ -73,15 +76,12 @@ const getUserById = async (id) => {
 };
 
 onMounted(() => {
-    const userData = getCookie("user_data");
-    const parsedUsers = JSON.parse(userData);
-    user.value = parsedUsers;
-
-    console.log(parsedUsers);
-    return;
-    getUserById(parsedUsers.id);
+    const userData = JSON.parse(getCookie("user_data"));
+    user.value = userData;
+    getUserById(userData.id);
 });
 </script>
+
 <template>
     <MasterLayout :url="props.url">
         <div class="p-4">
@@ -98,7 +98,7 @@ onMounted(() => {
                                 <a href="#">
                                     <div class="ro">
                                         <img
-                                            :src="currentUser.profile_url"
+                                            :src="user.profile_url"
                                             class="w-20 h-full object-cover"
                                             alt="User Image"
                                         />
@@ -109,14 +109,14 @@ onMounted(() => {
                                         <h5
                                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                                         >
-                                            {{ currentUser.name }}
+                                            {{ user.name }}
                                         </h5>
                                     </a>
-                                    <!-- <p
+                                    <p
                                         class="mb-3 font-normal text-gray-700 dark:text-gray-400"
                                     >
                                         {{ user.role }}
-                                    </p> -->
+                                    </p>
                                 </div>
                             </div>
                             <div
