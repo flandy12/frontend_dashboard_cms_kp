@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import MasterLayout from "../MasterLayout.vue";
-import Modal from "@Components/Modal.vue";
+import Modal from "@/Components/Modal.vue";
 import apiRequest from "../API/main";
 import BaseTable from "@/Components/BaseTable.vue";
 import { getCookie, hasPermission } from '@/Pages/API/main.js'
