@@ -7,17 +7,7 @@ const props = defineProps({
     url: String,
 });
 
-function getCookie(name) {
-    const match = document.cookie.match(
-        new RegExp("(^| )" + name + "=([^;]+)")
-    );
-    if (match) return decodeURIComponent(match[2]);
-    return null;
-}
-
-const userID = ref("");
 const user = ref({});
-const role = ref("");
 const isEditing = ref(false);
 const showPassword = ref(false);
 const errors = ref([]);
@@ -32,6 +22,18 @@ const currentUser = reactive({
     profile_url: "",
 });
 
+function getCookie(name) {
+    const match = document.cookie.match(
+        new RegExp("(^| )" + name + "=([^;]+)")
+    );
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = `${name}=; Max-Age=0; path=/`;
+}
+
 const toggleEdit = () => {
     isEditMode.value = !isEditMode.value;
 
@@ -42,23 +44,36 @@ const toggleEdit = () => {
 
 const onSubmit = async (id) => {
     isEditing.value = true;
-
     const formData = {
         name: currentUser.name,
         email: currentUser.email,
         _method: "PUT", //
     };
 
+    const isPasswordChanged =
+        currentUser.password && currentUser.password.trim() !== "";
+
+    if (isPasswordChanged) {
+        formData.password = currentUser.password;
+    }
+
     if (isEditing.value) {
-        const ressponse = await apiRequest({
+        const response = await apiRequest({
             url: `users/${id}`,
-            method: "POST", // pakai POST + _method untuk spoofing PUT
+            method: "POST",
             data: formData,
         });
 
-        console.log(ressponse);
+        console.log(response);
         isEditMode.value = false;
-        await getUserById(id); // refresh data user
+        await getUserById(id);
+    }
+
+    if (isPasswordChanged) {
+        deleteCookie("user_data");
+        deleteCookie("token");
+
+        window.location.href = "/login";
     }
 };
 
