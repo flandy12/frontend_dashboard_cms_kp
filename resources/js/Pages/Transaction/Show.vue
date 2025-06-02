@@ -1,7 +1,10 @@
 <script setup>
-    import { ref, computed } from 'vue';
+    import { ref, computed, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '@/Components/Modal.vue';
+    import { getCookie } from '@/Pages/API/main.js';
+    import apiRequest from '@/Pages/API/main.js';
+    import {formatRupiah} from '@/Pages/API/main.js'
 
     const products = ref([
         {
@@ -29,6 +32,9 @@
             date: '2023-10-01',
         },
     ]);
+
+    const data = ref({});
+    const permission = ref({});
     
     const searchQuery = ref('');
     const exportCSV = () => {
@@ -47,8 +53,8 @@
     };
 
     const filteredProducts = computed(() => {
-        if (!searchQuery.value) return products.value;
-        return products.value.filter(product =>
+        if (!searchQuery.value) return data.value;
+        return data.value.filter(product =>
             product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             product.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -63,6 +69,33 @@
         // Add your filter logic here
         console.log('Filter button clicked');
     }
+
+    const getData = async() => {
+        try {
+                const response = await apiRequest({
+                    url: "checkout",
+                    method: "get",
+                });
+
+                if (response.status === 200) {
+                    data.value = response.data;
+                    console.log(response);
+                }
+            } catch (err) {
+                console.error("Gagal mengambil produk:", err);
+            }
+        }
+
+    onMounted(() => {
+        getData();
+
+        const userData = getCookie("user_data");
+        try {
+            permission.value = JSON.parse(userData || "{}");
+        } catch {
+            permission.value = {};
+        }
+    });
 </script>
 
 <template>
@@ -101,36 +134,57 @@
                             <th class="px-6 py-3">No</th>
                             <th class="px-6 py-3">Product name</th>
                             <th class="px-6 py-3">Color</th>
-                            <th class="px-6 py-3">Category</th>
-                            <th class="px-6 py-3">Accessories</th>
-                            <th class="px-6 py-3">Available</th>
                             <th class="px-6 py-3">Price</th>
-                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Qty</th>
+                            <th class="px-6 py-3">Total Price</th>
+                            <th class="px-6 py-3">Payment Type</th>
                             <th class="px-6 py-3 text-center">Date</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600">
                             <tr
-                            v-for="product in filteredProducts"
+                            v-for="(product, key) in data"
                             :key="product.id"
                             class="bg-white border-b  border-gray-200 hover:bg-gray-50"
                             >
                             <td class="w-4 p-4">
-                                {{ product.id }}
+                                {{ key + 1 }}
                             </td>
-                            <th
-                                class="px-6 py-4 font-medium whitespace-nowrap"
+                            <td class=" space-y-4">
+                             <tr class="px-6 py-4 font-medium whitespace-nowrap"
                                 scope="row"
+                                v-for="(data, key) in product.items"
                             >
-                                {{ product.name }}
-                            </th>
-                            <td class="px-6 py-4">{{ product.color }}</td>
-                            <td class="px-6 py-4">{{ product.category }}</td>
-                            <td class="px-6 py-4">{{ product.accessories }}</td>
-                            <td class="px-6 py-4">{{ product.available }}</td>
-                            <td class="px-6 py-4">{{ product.price }}</td>
-                            <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
-                            <td class="px-6 py-4">{{ product.date }}</td>
+                                {{ data.product.name }}
+                            </tr>
+                            </td>
+                            <td>
+                              <tr class="px-6 py-4 font-medium whitespace-nowrap"
+                                scope="row"
+                                v-for="(data, key) in product.items"
+                            >
+                                {{ data.product.color }}
+                            </tr>
+                            </td>
+                             <td>
+                              <tr class="px-6 py-4 font-medium whitespace-nowrap"
+                                scope="row"
+                                v-for="(data, key) in product.items"
+                            >
+                                {{ formatRupiah(data.product.price) }}
+                            </tr>
+                            </td>
+                             <td>
+                              <tr class="px-6 py-4 font-medium whitespace-nowrap"
+                                scope="row"
+                                v-for="(data, key) in product.items"
+                            >
+                                {{ data.quantity }}
+                            </tr>
+                            </td>
+                            <td class="px-6 py-4">{{ formatRupiah(product.total_price) }}</td>
+                            <td class="px-6 py-4 capitalize">{{ product.payment_method }}</td>
+                            <td class="px-6 py-4">{{ product.created_at }}</td>
                             </tr>
                         </tbody>
                         </table>

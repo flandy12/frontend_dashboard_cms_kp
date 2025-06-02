@@ -165,12 +165,12 @@ onMounted(() => {
           </thead>
           <tbody class="text-gray-600">
             <tr
-              v-for="product in filteredProducts"
+              v-for="(product, key) in filteredProducts"
               :key="product.id"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
               <td class="w-4 p-4">
-                {{ product.id }}
+                {{ key + 1 }}
               </td>
               <th
                 class="px-6 py-4 font-medium whitespace-nowrap"

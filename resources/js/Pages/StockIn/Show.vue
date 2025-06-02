@@ -19,8 +19,8 @@ const data = ref('');
 const filteredProducts = computed(() => {
   if (!searchQuery.value) return data.value;
   return data.value.filter(item =>
-    item.quantity.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.created_at.toLowerCase().includes(searchQuery.value.toLowerCase())
+    item.product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.product.category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
@@ -95,7 +95,7 @@ onMounted(() => {
         <h1 class="text-2xl font-bold">Stock In</h1>
       </div>
 
-      <div class="pb-4 flex justify-between">
+       <div class="pb-4 flex justify-between">
         <div>
           <label for="table-search" class="sr-only">Search</label>
           <div class="relative mt-1">
@@ -122,16 +122,17 @@ onMounted(() => {
               type="text"
               id="table-search"
               class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg  bg-gray-50 focus:ring-blue-500 focus:border-blue-500  w-52"
-              placeholder="Search"
+              placeholder="Search Product Name & Size"
             />
           </div>
         </div>
 
         <div class="mb-4 flex justify-end gap-5">
          <button
-            v-if="hasPermission(permission, 'stock_in export')"
             @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
+            v-if="hasPermission(permission, 'stock_out export')"
+
           >
             Export
           </button>
@@ -140,10 +141,11 @@ onMounted(() => {
             class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
           >
             Filters
-          </button>
-           -->
+          </button> -->
+          
         </div>
       </div>
+
 
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table
@@ -163,12 +165,12 @@ onMounted(() => {
           </thead>
           <tbody class="text-gray-600">
             <tr
-              v-for="product in filteredProducts"
+              v-for="(product, key) in filteredProducts"
               :key="product.id"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
               <td class="w-4 p-4">
-                {{ product.id }}
+                {{ key + 1 }}
               </td>
               <th
                 class="px-6 py-4 font-medium whitespace-nowrap"
