@@ -125,15 +125,16 @@ const submit = async (menu) => {
             alert("Failed to update stock.");
         }
     } else {
-        const formStocIn = {
+        const stockIn = {
             product_id: currentData.id,
             quantity: stockOutQuantity.value,
         };
+
         try {
-            const response = await apiRequest({
+            await apiRequest({
                 url: `stockmovements/stockin`,
                 method: "post",
-                data: formStocIn,
+                data: stockIn,
             });
 
             // Refresh product info
