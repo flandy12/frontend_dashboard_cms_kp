@@ -2,7 +2,11 @@
 import { ref, computed, onMounted } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import apiRequest from '@/Pages/API/main.js'
+import apiRequest from '@/Pages/API/main.js';
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
   url: String,
@@ -20,22 +24,27 @@ const filteredProducts = computed(() => {
   );
 });
 
-// function exportCSV() {
-//   // contoh sederhana export CSV
-//   let csvContent = "data:text/csv;charset=utf-8,";
-//   csvContent += 'Product Name,Color,Category,Accessories,Available,Price,Weight\n';
-//   products.value.forEach(p => {
-//     const row = [p.name, p.color, p.category, p.accessories, p.available, p.price, p.weight].join(",");
-//     csvContent += row + "\n";
-//   });
-//   const encodedUri = encodeURI(csvContent);
-//   const link = document.createElement("a");
-//   link.setAttribute("href", encodedUri);
-//   link.setAttribute("download", "products.csv");
-//   document.body.appendChild(link);
-//   link.click();
-//   document.body.removeChild(link);
-// }
+const exportData = async() =>{
+    try {
+        const response = await apiRequest({
+            url: "export/stockin",
+            method: "get",
+            responseType: "blob", // <- WAJIB untuk file binary seperti Excel
+        });
+
+        if (response.status === 200) {
+           const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'stockin.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
 
 function openNewProductModal() {
   isModalOpen.value = true;
@@ -68,6 +77,13 @@ const getData = async() => {
 
 onMounted(() => {
     getData();
+
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
 });
 
 </script>
@@ -113,56 +129,59 @@ onMounted(() => {
 
         <div class="mb-4 flex justify-end gap-5">
          <button
-            @click="exportCSV"
+            v-if="hasPermission(permission, 'stock_in export')"
+            @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
           >
-            Export Table
+            Export
           </button>
-          <button
+          <!-- <button
             @click="applyFilters"
             class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
           >
             Filters
           </button>
-          
+           -->
         </div>
       </div>
 
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-         <table
+          <table
           class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
         >
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
             <tr>
               <th class="px-6 py-3">No</th>
-              <th class="px-6 py-3">User</th>
               <th class="px-6 py-3">Product name</th>
+              <th class="px-6 py-3">Color</th>
+              <th class="px-6 py-3">Category</th>
+              <th class="px-6 py-3">Size</th>
               <th class="px-6 py-3">Qty</th>
-              <th class="px-6 py-3">Note</th>
-              <th class="px-6 py-3 text-center">Date</th>
               <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3 text-center">Date</th>
             </tr>
           </thead>
           <tbody class="text-gray-600">
             <tr
-              v-for="item in data"
-              :key="item.id"
+              v-for="product in filteredProducts"
+              :key="product.id"
               class="bg-white border-b  border-gray-200 hover:bg-gray-50"
             >
               <td class="w-4 p-4">
-                {{ item.id }}
+                {{ product.id }}
               </td>
               <th
                 class="px-6 py-4 font-medium whitespace-nowrap"
                 scope="row"
               >
-                {{ item.product_id }}
+                {{ product.product.name }}
               </th>
-              <!-- <td class="px-6 py-4">{{ quantity.category }}</td>
-              <td class="px-6 py-4">{{ product.accessories }}</td>
-              <td class="px-6 py-4">{{ product.available }}</td>
-              <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">{{ product.status }}</span></td>
-              <td class="px-6 py-4">{{ product.date }}</td> -->
+              <td class="px-6 py-4">{{ product.product.color }}</td>
+              <td class="px-6 py-4">{{ product.product.category.name }}</td>
+              <td class="px-6 py-4">{{ product.product.size }}</td>
+              <td class="px-6 py-4">{{ product.quantity }}</td>
+              <td class="px-6 py-4"><span class="bg-green-300 px-3 py-1 rounded-full">Stock In</span></td>
+              <td class="px-6 py-4">{{ product.created_at }}</td>
             </tr>
           </tbody>
         </table>

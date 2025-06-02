@@ -2,7 +2,11 @@
 import { ref, computed, onMounted } from 'vue';
 import MasterLayout from '../MasterLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import apiRequest from '@/Pages/API/main.js'
+import apiRequest from '@/Pages/API/main.js';
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
   url: String,
@@ -14,22 +18,28 @@ const data = ref('');
 
 const filteredProducts = computed(() => {
   if (!searchQuery.value) return data.value;
-  return data.value.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.quantity.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return data.value.filter(item =>
+    item.product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.product.size.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
 const exportData = async() =>{
     try {
         const response = await apiRequest({
-            url: "stockmovements/stockout",
+            url: "export/stockout",
             method: "get",
+            responseType: "blob", // <- WAJIB untuk file binary seperti Excel
         });
 
         if (response.status === 200) {
-            data.value = response.data.data;
-            // console.log(response.data.data);
+           const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'stockout.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
@@ -67,6 +77,14 @@ const getData = async() => {
 
 onMounted(() => {
     getData();
+
+    const userData = getCookie("user_data");
+
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
 });
 
 </script>
@@ -105,7 +123,7 @@ onMounted(() => {
               type="text"
               id="table-search"
               class="block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg  bg-gray-50 focus:ring-blue-500 focus:border-blue-500  w-52"
-              placeholder="Search"
+              placeholder="Search Product Name & Size"
             />
           </div>
         </div>
@@ -114,15 +132,17 @@ onMounted(() => {
          <button
             @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
+            v-if="hasPermission(permission, 'stock_out export')"
+
           >
-            Export Table
+            Export
           </button>
-          <button
+          <!-- <button
             @click="applyFilters"
             class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
           >
             Filters
-          </button>
+          </button> -->
           
         </div>
       </div>
@@ -137,6 +157,7 @@ onMounted(() => {
               <th class="px-6 py-3">Product name</th>
               <th class="px-6 py-3">Color</th>
               <th class="px-6 py-3">Category</th>
+              <th class="px-6 py-3">Size</th>
               <th class="px-6 py-3">Qty</th>
               <th class="px-6 py-3">Status</th>
               <th class="px-6 py-3 text-center">Date</th>
@@ -159,6 +180,7 @@ onMounted(() => {
               </th>
               <td class="px-6 py-4">{{ product.product.color }}</td>
               <td class="px-6 py-4">{{ product.product.category.name }}</td>
+              <td class="px-6 py-4">{{ product.product.size }}</td>
               <td class="px-6 py-4">{{ product.quantity }}</td>
               <td class="px-6 py-4"><span class="bg-red-300 px-3 py-1 rounded-full">Stock Out</span></td>
               <td class="px-6 py-4">{{ product.created_at }}</td>

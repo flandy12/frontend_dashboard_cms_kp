@@ -4,6 +4,10 @@ import MasterLayout from "../MasterLayout.vue";
 import apiRequest from "../API/main";
 import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
     url: String,
@@ -87,8 +91,14 @@ const deleteCategory = async (id) => {
     }
 };
 
-onMounted(async () => {
-    await getCategories();
+onMounted( () => {
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+     getCategories();
 });
 </script>
 
@@ -99,6 +109,7 @@ onMounted(async () => {
                 <h1 class="text-2xl font-bold">Category</h1>
                 <button
                     @click="openModal(null)"
+                    v-if="hasPermission(permission, 'category create')"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
                     New Category
@@ -148,12 +159,14 @@ onMounted(async () => {
                     <BaseTable :data="categories" :columns="columns">
                         <template #actions="{ item }">
                             <button
+                                v-if="hasPermission(permission, 'category edit')"
                                 @click="openModal(item)"
                                 class="text-blue-600 hover:underline mr-2"
                             >
                                 Edit
                             </button>
                             <button
+                                v-if="hasPermission(permission, 'category remove')"
                                 @click="deleteCategory(item.id)"
                                 class="text-red-600 hover:underline"
                             >

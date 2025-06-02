@@ -15,16 +15,21 @@ function getCookie(name) {
     return null;
 }
 
+const userID = ref("");
 const user = ref({});
-
-const showPassword = ref([false]);
+const role = ref("");
+const isEditing = ref(false);
+const showPassword = ref(false);
 const errors = ref([]);
+
 const isEditMode = ref(false);
+
 const currentUser = reactive({
     id: null,
     name: "",
     email: "",
-    password: "",
+    password: null,
+    profile_url: "",
 });
 
 const toggleEdit = () => {
@@ -35,24 +40,25 @@ const toggleEdit = () => {
     }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (id) => {
+    isEditing.value = true;
+
     const formData = {
         name: currentUser.name,
         email: currentUser.email,
-        _method: "put",
-        // password: currentUser.password,
+        _method: "PUT", //
     };
-    console.log(formData);
-    return;
-    try {
-        await apiRequest({
-            url: `/users/${currentUser.id}`,
-            method: "post",
+
+    if (isEditing.value) {
+        const ressponse = await apiRequest({
+            url: `users/${id}`,
+            method: "POST", // pakai POST + _method untuk spoofing PUT
             data: formData,
         });
-        location.reload();
-    } catch (err) {
-        errors.value = err.response.data.errors;
+
+        console.log(ressponse);
+        isEditMode.value = false;
+        await getUserById(id); // refresh data user
     }
 };
 
@@ -63,12 +69,11 @@ const getUserById = async (id) => {
             method: "get",
         });
         if (response.status == 200) {
-            Object.assign(currentUser, {
-                id: response?.data?.data?.id ?? null,
-                name: response?.data?.data?.name ?? "",
-                email: response?.data?.data?.email ?? "",
-            });
-            console.log("isi data user", response.data.data);
+            user.value = response.data;
+            // console.log(user.value);
+            // currentUser.value = response.data;
+            currentUser.name = response.data.name;
+            currentUser.email = response.data.email;
         }
     } catch (err) {
         console.log("Gagal mengambil users", err);
@@ -76,9 +81,9 @@ const getUserById = async (id) => {
 };
 
 onMounted(() => {
-    const userData = JSON.parse(getCookie("user_data"));
-    user.value = userData;
-    getUserById(userData.id);
+    const userData = getCookie("user_data");
+    const parsedUsers = JSON.parse(userData);
+    getUserById(parsedUsers.id);
 });
 </script>
 
@@ -96,7 +101,7 @@ onMounted(() => {
                                 class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm max-h-max"
                             >
                                 <a href="#">
-                                    <div class="ro">
+                                    <div class="flex justify-center">
                                         <img
                                             :src="user.profile_url"
                                             class="w-20 h-full object-cover"
@@ -142,7 +147,9 @@ onMounted(() => {
                                         </a>
                                     </div>
                                     <div class="p-4 md:p-5 space-y-4">
-                                        <form @submit.prevent="onSubmit">
+                                        <form
+                                            @submit.prevent="onSubmit(user.id)"
+                                        >
                                             <div class="mb-5">
                                                 <label
                                                     for="name"

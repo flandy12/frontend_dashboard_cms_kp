@@ -9,6 +9,8 @@ const props = defineProps({
     id: String,
 });
 
+const menu = ref('');
+
 const columns = [
     { label: "Image", key: "image" },
     { label: "Category", key: "category" },
@@ -22,11 +24,14 @@ const columns = [
 const searchQuery = ref("");
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const basePrice = ref(0);
 
 const selectedCategory = ref("");
 const selectedSize = ref("");
 const categories = ref([]);
 const products = ref([]);
+const selectedPayment = ref('');
+
 const currentData = reactive({
     name: "",
     category: "",
@@ -38,9 +43,8 @@ const currentData = reactive({
     price: "",
 });
 
-
 const errors = ref([]);
-
+const count =  ref(1);
 
 const openModal = async (product) => {
     isEditing.value = !!product;
@@ -99,6 +103,9 @@ const getProduct = async (id) => {
             currentData.size = response.data.size;
             currentData.color = response.data.color;
             currentData.stock = response.data.stock;
+
+            currentData.price = formatRupiah(response.data.price);
+            basePrice.value = response.data.price; // simpan angka aslinya
         }
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
@@ -197,6 +204,7 @@ const deleteProduct = async (id) => {
         alert("Gagal menghapus product.");
     }
 };
+
 const imagePreview = computed(() => {
     if (currentData.image instanceof File) {
         return URL.createObjectURL(currentData.image);
@@ -209,40 +217,86 @@ const imagePreview = computed(() => {
 const stockOutModalOpen = ref(false);
 const stockOutQuantity = ref(1);
 
-const openStockOutModal = () => {
+const openModalMaster = (data) => {
     stockOutQuantity.value = 1;
     stockOutModalOpen.value = true;
+    menu.value = data;
+    console.log(menu.value);
 };
 
 const closeStockOutModal = () => {
     stockOutModalOpen.value = false;
 };
 
-const submitStockOut = async () => {
+const submit = async (data) => {
     if (stockOutQuantity.value <= 0 || stockOutQuantity.value > currentData.stock) {
         alert("Invalid quantity");
         return;
     }
 
-    try {
-        const response = await apiRequest({
-            url: `stockmovements/stockout`,
-            method: "post",
-            data: {
-                product_id : currentData.id,
-                quantity: stockOutQuantity.value,
-            },
-        });
+    if(menu == 'Checkout') {
+         try {
+            const response = await apiRequest({
+                url: `stockmovements/stockin`,
+                method: "post",
+                data: {
+                    product_id : currentData.id,
+                    quantity: stockOutQuantity.value,
+                },
+            });
 
-        // Refresh product info
-        await getProduct(currentData.id);
-        closeStockOutModal();
-        alert("Stock updated successfully");
-    } catch (err) {
-        console.error("Stock out failed:", err);
-        alert("Failed to update stock.");
+            // Refresh product info
+            await getProduct(currentData.id);
+            closeStockOutModal();
+            alert("Stock updated successfully");
+        } catch (err) {
+            console.error("Stock out failed:", err);
+            alert("Failed to update stock.");
+        }
+    } else {
+         try {
+            const response = await apiRequest({
+                url: `stockmovements/stockin`,
+                method: "post",
+                data: {
+                    product_id : currentData.id,
+                    quantity: stockOutQuantity.value,
+                },
+            });
+
+            // Refresh product info
+            await getProduct(currentData.id);
+            closeStockOutModal();
+            alert("Stock updated successfully");
+        } catch (err) {
+            console.error("Stock out failed:", err);
+            alert("Failed to update stock.");
+        }
     }
+   
 };
+
+function increment() {
+  count.value++;
+  const total = basePrice.value * count.value;
+  currentData.price = formatRupiah(total);
+}
+
+function decrement() {
+   if (count.value > 1) {
+        count.value--;
+        const total = basePrice.value * count.value;
+        currentData.price = formatRupiah(total);
+    }
+}
+
+function formatRupiah(number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(number)
+}
 
 
 onMounted(() => {
@@ -258,28 +312,22 @@ onMounted(() => {
    <div class="w-full flex justify-center bg-zinc-50 py-20">
    
         <!-- Main modal -->
-        <div id="" class="bg-slate-50 rounded-xl w-full max-w-xl shadow-xl p-6  border border-gray-200  ">
+        <div class="bg-slate-50 rounded-xl w-full max-w-xl shadow-xl p-6  border border-gray-200  ">
             <div class="">
                 <!-- Modal content -->
                 <div class="relative rounded-lg ">
-                    <div class="p-4 md:p-5">
-                        <h3 class="text-xl font-semibold text-gray-900">
-                            Detail Product
-                        </h3>
+                    <div class="mb-5">
+                        <label  for="default-input" class="block mb-2 text-sm font-medium text-gray-900">
+                             Product Name
+                        </label>
+                        <p class="text-2xl"> {{currentData.name}}</p>
                     </div>
                     <!-- Modal body -->
                     <div class="space-y-4">
-                        <div
-                            class="mx-auto"
-                           
-                        >   
+                        <div class="mx-auto">   
                         
                             <div class="mb-5">
-                                <label
-                                    class="block my-5 text-sm font-medium text-gray-900"
-                                >
-                                    Image
-                                </label>
+                             
                                 <div
                                     class="flex justify-center items-center p-5 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
                                 >
@@ -295,23 +343,9 @@ onMounted(() => {
                               
                             </div>
 
-
-                            <div class="mb-5">
-                                <label
-                                    for="default-input"
-                                    class="block mb-2 text-sm font-medium text-gray-900"
-                                >
-                                    Product Name
-                                </label>
-                                <p class="text-2xl"> {{currentData.name}}
-                              </p>
-                            </div>
-
                             <div class="mb-5"></div>
 
-                            <div
-                                class="mb-5 flex justify-between gap-5"
-                            >
+                            <div class="mb-5 flex justify-between gap-5">
                                 <div class="w-full">
                                     <label
                                         for="default-input"
@@ -343,45 +377,94 @@ onMounted(() => {
                                         Stock
                                     </label>
                                     <p class="font-bold">{{ currentData.stock }}</p>
-                                    
                                 </div>
                             </div>
 
-
                             <!-- Modal footer -->
-                            <div
-                                class="flex items-center pt-6 border-t"
-                            >
-                               <div>
-                                <button
-                                    @click="openStockOutModal"
+                            <div class="flex items-center pt-6 border-t"
+                                >
+                                <div class="w-full">
+                                    <label
+                                        for="default-input"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                    >
+                                        Price
+                                    </label>
+                                    <p class="font-bold text-2xl">{{ currentData.price }}</p>
+                                </div>
+                    
+                                <div class="flex items-center space-x-4">
+                                    <button
+                                    @click="decrement"
+                                    class=" bg-zinc-300 text-black px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                                    >
+                                    -
+                                    </button>
+
+                                    <span class="text-xl font-bold w-10 text-center">{{ count }}</span>
+
+                                    <button
+                                    @click="increment"
+                                    class=" bg-zinc-300 text-black px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                                    >
+                                    +
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5 grap-5 space-x-5 flex justify-center">
+                              <button
+                                    @click="openModalMaster('Checkout')"
                                     data-modal-hide="default-modal"
                                     type="submit"
                                     class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
                                 >
-                                    Stock out
-                                </button>
-                                </div>
-                            </div>
+                                    Checkout
+                              </button>
+
+                              <button
+                                    @click="openModalMaster('Stock In')"
+                                    data-modal-hide="default-modal"
+                                    type="submit"
+                                    class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                                >
+                                    Stock In
+                              </button>
+                              </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-     <!-- Stock Out Modal -->
+     <!-- Stock In Modal -->
     <Modal :show="stockOutModalOpen" @close="closeStockOutModal">
         <div class="p-6 rounded-lg w-full mx-auto">
-            <h2 class="text-lg font-bold mb-4 text-gray-800">Stock Out</h2>
+            <h2 class="text-lg font-bold mb-4 text-gray-800">{{ menu }}</h2>
             <p class="mb-2">Current stock: <strong>{{ currentData.stock }}</strong></p>
-            <label class="block mb-2 text-sm font-medium text-gray-700">Quantity to remove</label>
-            <input
-                type="number"
-                v-model="stockOutQuantity"
-                min="1"
-                :max="currentData.stock"
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            
+            <div v-if="menu == 'Stock In'">
+                <label class="block mb-2 text-sm font-medium text-gray-700">Quantity to stock in</label>
+                <input
+                    type="number"
+                    v-model="stockOutQuantity"
+                    min="1"
+                    :max="currentData.stock"
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            <div v-if="menu == 'Checkout'">
+                <label for="payment">Pilih Metode Pembayaran:</label>
+                <select v-model="selectedPayment" id="payment" class="ms-5 rounded">
+                    <option disabled value="">-- Pilih --</option>
+                    <option value="cash">Cash</option>
+                    <option value="qr">Trasfer</option>
+                </select>
+            </div>
+
+
             <div class="flex justify-end gap-2 mt-6">
                 <button
                     @click="closeStockOutModal"
@@ -390,7 +473,7 @@ onMounted(() => {
                     Cancel
                 </button>
                 <button
-                    @click="submitStockOut"
+                    @click="submit(menu)"
                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
                 >
                     Confirm

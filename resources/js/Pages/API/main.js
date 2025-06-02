@@ -27,13 +27,6 @@ api.interceptors.response.use(
     }
 );
 
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-}
-
 /**
  * Fungsi untuk mengirim request ke endpoint API
  * @param {string} endpoint - endpoint API tanpa baseURL (misal: "/users")
@@ -54,5 +47,19 @@ export const apiRequest = async (endpoint, formData = {}, method = "POST") => {
         throw error;
     }
 };
+
+
+export function hasPermission(user, permissionKey) {
+    return user?.permissions?.includes(permissionKey);
+}
+
+// ✅ Ambil cookie
+export function getCookie(name) {
+    const match = document.cookie.match(
+        new RegExp("(^| )" + name + "=([^;]+)")
+    );
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+}
 
 export default api;

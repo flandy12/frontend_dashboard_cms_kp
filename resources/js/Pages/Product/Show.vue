@@ -5,6 +5,10 @@ import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
 import sendTelegramNotification from "@/Telegram/telegramAPI.js";
+import { getCookie, hasPermission } from '@/Pages/API/main.js'
+
+// Check Permission
+const permission = ref({});
 
 const props = defineProps({
     url: String,
@@ -23,11 +27,13 @@ const columns = [
 const searchQuery = ref("");
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const isSubmitting = ref(false);
 
 const selectedCategory = ref("");
 const selectedSize = ref("");
 const categories = ref([]);
 const products = ref([]);
+
 const currentData = reactive({
     name: "",
     category: "",
@@ -55,32 +61,6 @@ const filteredProducts = computed(() => {
                 .includes(searchQuery.value.toLowerCase())
     );
 });
-
-function exportCSV() {
-    // contoh sederhana export CSV
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent +=
-        "Product Name,Color,Category,Accessories,Available,Price,Weight\n";
-    products.value.forEach((p) => {
-        const row = [
-            p.name,
-            p.color,
-            p.category,
-            p.accessories,
-            p.available,
-            p.price,
-            p.weight,
-        ].join(",");
-        csvContent += row + "\n";
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "products.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 const openModal = async (product) => {
     isEditing.value = !!product;
@@ -154,6 +134,8 @@ const getProduct = async () => {
 };
 
 const submitForm = async () => {
+    isSubmitting.value = true;
+
     const formData = {
         ...currentData,
         category: selectedCategory.value,
@@ -196,7 +178,8 @@ const submitForm = async () => {
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
         console.log(err.response);
-        // errors.value = err.response.data.errors;
+        errors.value = err.response.data.errors;
+        isSubmitting.value = false;
     }
 };
 
@@ -256,7 +239,30 @@ const imagePreview = computed(() => {
     return null;
 });
 
+const getProductId =  async(id) => {
+      try {
+        const response = await apiRequest({
+            url: `products/${id}`,
+            method: "get",
+        });
+
+        if (response.status === 200) {
+            openModal(response.data);
+        }
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
+
 onMounted(() => {
+    
+    const userData = getCookie("user_data");
+    try {
+        permission.value = JSON.parse(userData || "{}");
+    } catch {
+        permission.value = {};
+    }
+
     getCategories();
     getProduct();
 });
@@ -268,6 +274,7 @@ onMounted(() => {
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Product</h1>
                 <button
+                    v-if="hasPermission(permission, 'product create')"
                     @click="openModal(null)"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                 >
@@ -302,18 +309,21 @@ onMounted(() => {
                 <BaseTable :data="filteredProducts" :columns="columns">
                     <template #actions="{ item }">
                         <button
-                            @click="openModal(item)"
+                            v-if="hasPermission(permission, 'product edit')"
+                            @click="getProductId(item.id)"
                             class="text-blue-600 hover:underline mr-2"
                         >
                             Edit
                         </button>
                         <button
+                            v-if="hasPermission(permission, 'product delete')"
                             @click="deleteProduct(item.id)"
                             class="text-red-600 hover:underline"
                         >
                             Remove
                         </button>
                         <button
+                            v-if="hasPermission(permission, 'product edit')"
                             @click="barcodeQR(item.id)"
                             class="text-green-600 hover:underline"
                         >
@@ -322,31 +332,6 @@ onMounted(() => {
                     </template>
                 </BaseTable>
 
-                <!-- Scrollable Table Wrapper -->
-                <div class="w-full overflow-x-auto">
-                    <BaseTable :data="filteredProducts" :columns="columns">
-                        <template #actions="{ item }">
-                            <button
-                                @click="openModal(item)"
-                                class="text-blue-600 hover:underline mr-2"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                @click="deleteCategory(item.id)"
-                                class="text-red-600 hover:underline"
-                            >
-                                Remove
-                            </button>
-                            <button
-                                @click="barcodeQR(item.id)"
-                                class="text-green-600 hover:underline"
-                            >
-                                Barcode
-                            </button>
-                        </template>
-                    </BaseTable>
-                </div>
             </div>
 
             <div class="flex flex-col items-center mt-5">
@@ -694,7 +679,7 @@ onMounted(() => {
                                             type="submit"
                                             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                                         >
-                                            Submit
+                                            {{ isSubmitting ? 'Submitting...' : 'Submit' }}
                                         </button>
                                     </div>
                                 </form>
