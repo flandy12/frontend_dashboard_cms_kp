@@ -56,7 +56,6 @@ const onSubmit = async (id) => {
     if (isPasswordChanged) {
         formData.password = currentUser.password;
     }
-
     if (isEditing.value) {
         const response = await apiRequest({
             url: `users/${id}`,
@@ -85,8 +84,6 @@ const getUserById = async (id) => {
         });
         if (response.status == 200) {
             user.value = response.data;
-            // console.log(user.value);
-            // currentUser.value = response.data;
             currentUser.name = response.data.name;
             currentUser.email = response.data.email;
         }
@@ -96,9 +93,8 @@ const getUserById = async (id) => {
 };
 
 onMounted(() => {
-    const userData = getCookie("user_data");
-    const parsedUsers = JSON.parse(userData);
-    getUserById(parsedUsers.id);
+    const userData = JSON.parse(getCookie("user_data"));
+    getUserById(userData.id);
 });
 </script>
 
@@ -181,7 +177,11 @@ onMounted(() => {
                                                     id="name"
                                                     v-model="currentUser.name"
                                                     :readonly="!isEditMode"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                                                    :class="`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5
+                                                    ${
+                                                        !isEditMode &&
+                                                        'pointer-events-none'
+                                                    }`"
                                                 />
                                                 <ul
                                                     v-if="errors"
@@ -210,7 +210,11 @@ onMounted(() => {
                                                     id="email"
                                                     v-model="currentUser.email"
                                                     :readonly="!isEditMode"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                                                    :class="`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5
+                                                    ${
+                                                        !isEditMode &&
+                                                        'pointer-events-none'
+                                                    }`"
                                                 />
                                                 <ul
                                                     v-if="errors"
@@ -245,10 +249,15 @@ onMounted(() => {
                                                         currentUser.password
                                                     "
                                                     :readonly="!isEditMode"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 pr-10"
+                                                    :class="`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5  pr-10
+                                                    ${
+                                                        !isEditMode &&
+                                                        'pointer-events-none'
+                                                    }`"
                                                 />
                                                 <button
                                                     type="button"
+                                                    v-if="isEditMode"
                                                     class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 mt-6"
                                                     @click="
                                                         showPassword =
