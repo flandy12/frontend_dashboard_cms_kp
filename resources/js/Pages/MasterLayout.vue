@@ -71,7 +71,7 @@ watch(
                                     class="w-10 h-full object-cover"
                                     alt="User Image"
                                 />
-                                <span class="uppercase">Inventory App</span>
+                                <span class="uppercase" >Inventory App</span>
                             </div>
                             <p class="text-sm mt-5 text-gray-500">
                                 {{ user.name }} • {{ user.role }}
@@ -91,9 +91,9 @@ watch(
                         <span v-else>⬅️</span>
                     </button>
                     <div
-                        :class="[
+                       :class="[
                             isCollapsed ? 'w-16' : 'w-64',
-                            'border-r bg-white min-h-screen transition-all duration-300',
+                            'transition-all duration-300 ease-in-out',
                         ]"
                     >
                         <a

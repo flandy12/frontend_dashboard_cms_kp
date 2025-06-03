@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from 'vue';
 import MasterLayout from "../MasterLayout.vue";
 import apiRequest from "../API/main";
 import Modal from "@/Components/Modal.vue";
@@ -20,6 +20,16 @@ const errors = ref([]);
 const currentCategory = reactive({ id: null, name: "" });
 const isEditing = ref(false);
 const isModalOpen = ref(false);
+const searchQuery = ref('');
+
+const filteredProducts = computed(() => {
+    if (!searchQuery.value) return categories.value;
+    return categories.value.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        product.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+});
 
 function openModal(category) {
     isEditing.value = !!category;
@@ -156,7 +166,7 @@ onMounted( () => {
                             <button>Select All</button>
                         </div>
                     </div>
-                    <BaseTable :data="categories" :columns="columns">
+                    <BaseTable :data="filteredProducts" :columns="columns">
                         <template #actions="{ item }">
                             <button
                                 v-if="hasPermission(permission, 'category edit')"
