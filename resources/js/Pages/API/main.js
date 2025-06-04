@@ -63,11 +63,13 @@ export function getCookie(name) {
 }
 
 export function formatRupiah(number) {
+    const parsed = Number(number);
+
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(number)
+      minimumFractionDigits: 0,
+    }).format(parsed);
   }
 
 export default api;

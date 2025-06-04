@@ -5,7 +5,7 @@ import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
 import sendTelegramNotification from "@/Telegram/telegramAPI.js";
-import { getCookie, hasPermission } from '@/Pages/API/main.js'
+import { getCookie, hasPermission, formatRupiah } from '@/Pages/API/main.js'
 
 // Check Permission
 const permission = ref({});
@@ -42,7 +42,7 @@ const currentData = reactive({
     color: "",
     size: "",
     stock: "",
-    price: "",
+    price: 0,
 });
 const errors = ref([]);
 

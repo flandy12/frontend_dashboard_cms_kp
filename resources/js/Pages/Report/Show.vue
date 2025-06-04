@@ -2,7 +2,7 @@
     import { ref, onMounted } from 'vue';
     import MasterLayout from '../MasterLayout.vue';
     import Modal from '@/Components/Modal.vue';
-    import { getCookie, hasPermission } from '@/Pages/API/main.js'
+    import { getCookie, hasPermission, apiRequest, formatRupiah } from '@/Pages/API/main.js'
 
     // Check Permission
     const permission = ref({});
@@ -10,6 +10,8 @@
     const props = defineProps({
         url: String,
     });
+
+    const data = ref({});
 
     const isModalOpen = ref(false);
     function openNewProductModal() {
@@ -25,14 +27,33 @@
     console.log('Filter button clicked');
     }
 
+    const getProductBestSeller = async() => {
+        try {
+            // const response = await apiRequest({
+            //     url: "checkout/bestseller",
+            //     method: "get",
+            // });
+
+            const response = await apiRequest("checkout/bestseller", {}, "GET");
+            data.value = response.data;
+            console.log( response.data);
+        } catch (err) {
+            console.log(err);
+            console.error("Gagal mengambil produk:", err);
+        }
+    };
+
     onMounted(() => {
         
-    const userData = getCookie("user_data");
-    try {
-        permission.value = JSON.parse(userData || "{}");
-    } catch {
-        permission.value = {};
-    }
+    // const userData = getCookie("user_data");
+    // try {
+    //     permission.value = JSON.parse(userData || "{}");
+    // } catch {
+    //     permission.value = {};
+    // }
+
+    // getProductBestSeller();
+    getProductBestSeller();
     });
 </script>
 <template>
@@ -64,174 +85,28 @@
             </div>
             <div class="relative overflow-x-auto">
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
-                            <tr>
-                                <th scope="col" class="p-4">
-                                   No
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Product name
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Color
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Category
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Accessories
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Available
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Price
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Weight
-                                </th>
-                            </tr>
+                    <div class="overflow-x-auto p-4">
+                    <h2 class="text-xl font-bold mb-4">Laporan Produk Terlaris - Juni 2025</h2>
+                    <table class="min-w-full bg-white border border-gray-200 rounded-xl shadow">
+                        <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-left text-sm">
+                            <th class="px-4 py-2 border-b">#</th>
+                            <th class="px-4 py-2 border-b">Nama Produk</th>
+                            <th class="px-4 py-2 border-b">Terjual</th>
+                            <th class="px-4 py-2 border-b">Total Penjualan</th>
+                        </tr>
                         </thead>
-                        <tbody class="text-gray-500">
-                            <tr class="bg-white border-b  border-gray-200 hover:bg-gray-50">
-                                <td class="w-4 p-4">
-                                    1
-                                </td>
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                    Apple MacBook Pro 17"
-                                </th>
-                                <td class="px-6 py-4">
-                                    Silver
-                                </td>
-                                <td class="px-6 py-4">
-                                    Laptop
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    $2999
-                                </td>
-                                <td class="px-6 py-4">
-                                    3.0 lb.
-                                </td>
-                               
-                            </tr>
-                            <tr class="bg-white border-b  border-gray-200 hover:bg-gray-50">
-                                <td class="w-4 p-4">
-                                    1
-                                </td>
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                    Microsoft Surface Pro
-                                </th>
-                                <td class="px-6 py-4">
-                                    White
-                                </td>
-                                <td class="px-6 py-4">
-                                    Laptop PC
-                                </td>
-                                <td class="px-6 py-4">
-                                    No
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    $1999
-                                </td>
-                                <td class="px-6 py-4">
-                                    1.0 lb.
-                                </td>
-                               
-                            </tr>
-                            <tr class="bg-white border-b  border-gray-200 hover:bg-gray-50">
-                                <td class="w-4 p-4">
-                                   2
-                                </td>
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                    Magic Mouse 2
-                                </th>
-                                <td class="px-6 py-4">
-                                    Black
-                                </td>
-                                <td class="px-6 py-4">
-                                    Accessories
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    No
-                                </td>
-                                <td class="px-6 py-4">
-                                    $99
-                                </td>
-                                <td class="px-6 py-4">
-                                    0.2 lb.
-                                </td>
-                               
-                            </tr>
-                            <tr class="bg-white border-b  border-gray-200 hover:bg-gray-50">
-                                <td class="w-4 p-4">
-                                   3
-                                </td>
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                    Apple Watch
-                                </th>
-                                <td class="px-6 py-4">
-                                    Black
-                                </td>
-                                <td class="px-6 py-4">
-                                    Watches
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    No
-                                </td>
-                                <td class="px-6 py-4">
-                                    $199
-                                </td>
-                                <td class="px-6 py-4">
-                                    0.12 lb.
-                                </td>
-                               
-                            </tr>
-                            <tr class="bg-white border-b  border-gray-200 hover:bg-gray-50">
-                                <td class="w-4 p-4">
-                                    4
-                                </td>
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                    Apple iMac
-                                </th>
-                                <td class="px-6 py-4">
-                                    Silver
-                                </td>
-                                <td class="px-6 py-4">
-                                    PC
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    Yes
-                                </td>
-                                <td class="px-6 py-4">
-                                    $2999
-                                </td>
-                                <td class="px-6 py-4">
-                                    7.0 lb.
-                                </td>
-                               
-                            </tr>
-                          
+                        <tbody class="text-sm text-gray-800">
+                        <tr class="hover:bg-gray-50" v-for="(item, key) in data">
+                            <td class="px-4 py-2 border-b">{{key+1}}</td>
+                            <td class="px-4 py-2 border-b">{{item.nama}}</td>
+                            <td class="px-4 py-2 border-b">{{item.total_terjual}}</td>
+                            <td class="px-4 py-2 border-b">{{formatRupiah(item.total_pendapatan)}}</td>
+                        </tr>
+                        <!-- Tambah baris sesuai kebutuhan -->
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
