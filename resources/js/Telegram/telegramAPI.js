@@ -28,10 +28,7 @@ const sendTelegramNotification = async (message) => {
     }
 };
 
-const sendTelegramCSV = async (
-    csvText,
-    filename = "Laporan Penjualan Hari ini.csv"
-) => {
+const sendTelegramCSV = async (csvText, filename = "file.csv") => {
     const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
     const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 

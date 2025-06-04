@@ -13,17 +13,18 @@ const permission = ref({});
 const searchQuery = ref("");
 const exportCSV = async () => {
     const header =
-        "Tanggal Checkout,Product Name,Category,Color,Size,Quantity,Harga Satuan,Harga Total\n";
+        "Product Name,Category,Color,Size,Quantity,Harga Satuan,Harga Total, Tanggal Checkout\n";
 
     const rows = [];
 
     data.value.forEach((checkout) => {
-        const checkoutDate = new Date(checkout.created_at).toLocaleString();
-
+        // const checkoutDate = new Date(checkout.created_at).toLocaleString();
+        const checkoutDate = new Date(checkout.created_at)
+            .toISOString()
+            .split("T")[0];
         checkout.items.forEach((item) => {
             const p = item.product;
             const row = [
-                checkoutDate,
                 `"${p.name}"`,
                 p.category?.name || "",
                 p.color,
@@ -31,6 +32,7 @@ const exportCSV = async () => {
                 item.quantity,
                 parseFloat(p.price).toLocaleString("id-ID"),
                 (parseFloat(p.price) * item.quantity).toLocaleString("id-ID"),
+                checkoutDate,
             ].join(",");
             rows.push(row);
         });
@@ -46,7 +48,7 @@ const exportCSV = async () => {
     document.body.appendChild(link);
     link.click();
 
-    await sendTelegramCSV(csvContent);
+    await sendTelegramCSV(csvContent, "laporan penjualan hari ini.csv");
 };
 
 const filteredProducts = computed(() => {
