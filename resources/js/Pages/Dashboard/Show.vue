@@ -14,25 +14,29 @@ const products = ref([]);
 
 // Hitung persentase dan warna bar
 const stockBars = computed(() =>
-    products.value.map((product) => {
-        const percentage = Math.min((product.stock / 10) * 100, 100);
-        let color = "bg-green-500";
-        if (product.stock <= 5) {
-            color = "bg-red-500";
-        } else if (product.stock < 20) {
-            color = "bg-yellow-400";
-        }
-        return {
-            ...product,
-            percentage,
-            color,
-        };
-    })
+    products.value
+        .filter((product) => product.stock >= 1 && product.stock <= 10)
+        .map((product) => {
+            const percentage = (product.stock / 10) * 100;
+            let color = "bg-green-500";
+            if (product.stock >= 0 && product.stock <= 4) {
+                color = "bg-red-500";
+            } else if (product.stock >= 5 && product.stock <= 8) {
+                color = "bg-yellow-400";
+            }
+
+            return {
+                ...product,
+                percentage,
+                color,
+            };
+        })
 );
 const permission = ref({});
 const totalProduct = ref(0);
 const totalStockIn = ref(0);
 const totalStockOut = ref(0);
+const transactions = ref([]);
 
 const tasks = computed(() => [
     {
@@ -72,8 +76,6 @@ const summary = ref([
     { label: "Keywords", count: 3095, color: "bg-yellow-100 text-yellow-700" },
 ]);
 
-const highestACoS = ref([]);
-
 const getProducts = async () => {
     try {
         const response = await apiRequest({
@@ -85,8 +87,6 @@ const getProducts = async () => {
                 name: item.name ?? "",
                 stock: item.stock ?? "",
             }));
-
-            console.log(products.value);
 
             totalProduct.value = response.data.data.length;
         }
@@ -123,16 +123,38 @@ const getStockOut = async () => {
     }
 };
 
+const getCheckout = async () => {
+    try {
+        const response = await apiRequest({
+            url: "checkout",
+            method: "get",
+        });
+        if (response.status === 200) {
+            const sorted = [...response.data].sort(
+                (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            transactions.value = sorted.slice(0, 4);
+            console.log(response.data);
+        }
+    } catch (err) {
+        console.log("Gagal mengambil Stock Out", err);
+    }
+};
+
+const isAllowedRole = computed(() =>
+    ["Super Admin", "Owner", "Store Manager"].includes(permission.value.role)
+);
 onMounted(() => {
     // Fetch data here
     // Example:
-    highestACoS.value = [
-        { campaign: "B08NYN3MT", spend: 30.25, sales: 149.85, acos: 149.85 },
-        { campaign: "Campaign - 3", spend: 40.0, sales: 134.0, acos: 134.5 },
-        { campaign: "Research - Ac", spend: 43.55, sales: 129.75, acos: 125.0 },
-        { campaign: "B087C75GQJ", spend: 45.85, sales: 113.0, acos: 119.45 },
-        { campaign: "House Number", spend: 54.0, sales: 99.55, acos: 85.0 },
-    ];
+    // highestACoS.value = [
+    //     { campaign: "B08NYN3MT", spend: 30.25, sales: 149.85, acos: 149.85 },
+    //     { campaign: "Campaign - 3", spend: 40.0, sales: 134.0, acos: 134.5 },
+    //     { campaign: "Research - Ac", spend: 43.55, sales: 129.75, acos: 125.0 },
+    //     { campaign: "B087C75GQJ", spend: 45.85, sales: 113.0, acos: 119.45 },
+    //     { campaign: "House Number", spend: 54.0, sales: 99.55, acos: 85.0 },
+    // ];
 
     const userData = getCookie("user_data");
     try {
@@ -143,6 +165,7 @@ onMounted(() => {
     getProducts();
     getStockIn();
     getStockOut();
+    getCheckout();
 });
 </script>
 
@@ -156,7 +179,7 @@ onMounted(() => {
                     <h1 class="text-2xl font-bold">Dashboard</h1>
                 </div>
             </div>
-            <div class="space-y-4">
+            <div v-if="isAllowedRole" class="space-y-4">
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div
                         v-for="(task, index) in tasks"
@@ -184,6 +207,7 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
+
                 <div
                     class="grid grid-cols-1 sm:grid-cols-2 auto-rows-max gap-6 p-4 rounded-xl"
                 >
@@ -206,7 +230,7 @@ onMounted(() => {
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm row-span-2">
                         <h3 class="text-md font-semibold mb-4">
-                            Stock Updated
+                            Stock Urgenty
                         </h3>
                         <div class="space-y-3">
                             <div v-for="(item, idx) in stockBars" :key="idx">
@@ -241,31 +265,41 @@ onMounted(() => {
                         <table class="min-w-full text-sm">
                             <thead class="text-left text-gray-500 border-b">
                                 <tr>
-                                    <th class="py-2 pr-4">Campaign</th>
-                                    <th class="py-2 pr-4">Spend</th>
-                                    <th class="py-2 pr-4">Sales</th>
-                                    <th class="py-2">ACoS</th>
+                                    <th class="py-2 pr-4">Product Name</th>
+                                    <th class="py-2 pr-4">Total Price</th>
+                                    <th class="py-2">Payment Method</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr
-                                    v-for="item in highestACoS"
-                                    :key="item.campaign"
+                                    v-for="item in transactions"
+                                    :key="item.id"
                                     class="border-t hover:bg-gray-50"
                                 >
+                                    <!-- <td class="py-2 pr-4">
+                                        {{ item.id }}
+                                    </td> -->
                                     <td class="py-2 pr-4">
-                                        {{ item.campaign }}
+                                        <ul>
+                                            <li
+                                                v-for="(
+                                                    productItem, idx
+                                                ) in item.items"
+                                                :key="idx"
+                                            >
+                                                {{ productItem.product.name }}
+                                            </li>
+                                        </ul>
                                     </td>
                                     <td class="py-2 pr-4">
-                                        ${{ item.spend.toFixed(2) }}
+                                        Rp{{
+                                            Number(
+                                                item.total_price
+                                            ).toLocaleString("id-ID")
+                                        }}
                                     </td>
                                     <td class="py-2 pr-4">
-                                        ${{ item.sales.toFixed(2) }}
-                                    </td>
-                                    <td
-                                        class="py-2 font-semibold text-purple-600"
-                                    >
-                                        ${{ item.acos.toFixed(2) }}
+                                        {{ item.payment_method }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -275,6 +309,7 @@ onMounted(() => {
                     <!-- Bar Chart Placeholder -->
                 </div>
             </div>
+            <div v-if="!isAllowedRole">Welcome homie!</div>
         </div>
     </MasterLayout>
 </template>
