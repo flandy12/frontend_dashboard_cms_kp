@@ -5,6 +5,8 @@ import { Clock, CalendarDays, AlertCircle, Zap } from "lucide-vue-next";
 import { computed } from "vue";
 import apiRequest from "../API/main";
 import { getCookie } from "@/Pages/API/main.js";
+import AppLayout from '@/Layouts/AppLayout2.vue';
+import Welcome from '@/Components/Welcome.vue';
 
 const props = defineProps({
     url: String,
@@ -309,14 +311,15 @@ onMounted(() => {
                     <!-- Bar Chart Placeholder -->
                 </div>
             </div>
-            <div v-if="!isAllowedRole">Welcome homie!</div>
+            <div v-if="!isAllowedRole">
+                <AppLayout title="Dashboard">
+                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                            <Welcome />
+                        </div>
+                    </div>
+            </AppLayout>
+            </div>
         </div>
     </MasterLayout>
 </template>
-
-<style scoped>
-/* .grid {
-    background: #e0f2fe;
-    border-radius: 16px;
-} */
-</style>

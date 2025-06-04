@@ -194,48 +194,51 @@
       </div>
 
       <div class="w-full h-[400px] overflow-auto relative overflow-x-auto shadow-md sm:rounded-lg mb-10">
-        <table
-          class="w-full h-[400px] overflow-hidden text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      <table class="w-full h-[400px] relative text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 border">
+        <tr>
+          <th class="px-6 py-3 border border-gray-200">No</th>
+          <th class="px-6 py-3 border border-gray-200">Name</th>
+          <th class="px-6 py-3 border border-gray-200">Email</th>
+          <th class="px-6 py-3 border border-gray-200">Role</th>
+          <th class="px-6 py-3 border border-gray-200">Permission</th>
+          <th class="px-6 py-3 border border-gray-200">Action</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600">
+        <tr
+          v-for="(user, key) in filteredUsers"
+          :key="key"
+          class="bg-white border-b border-gray-200 hover:bg-gray-50"
         >
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
-            <tr>
-              <th class="px-6 py-3">No</th>
-              <th class="px-6 py-3">Name</th>
-              <th class="px-6 py-3">Email</th>
-              <th class="px-6 py-3">Role</th>
-              <th class="px-6 py-3">Permission</th>
-              <th class="px-6 py-3">Action</th>
+          <td class="w-4 p-4 border border-gray-200 text-center">
+            {{ key + 1 }}
+          </td>
+          <td class="px-6 py-4 capitalize border border-gray-200">{{ user.name }}</td>
+          <td class="px-6 py-4 border border-gray-200">{{ user.email }}</td>
+          <td class="px-6 py-4 border border-gray-200">
+            <p v-if="user.roles && user.roles.length > 0">{{ user.roles.join(', ') }}</p>
+            <span v-else>-</span>
+          </td>
+          <td class="px-6 py-4 border border-gray-200">
+            <template v-if="user.permissions && user.permissions.length > 0">
+              <ul class="list-none pl-4 space-y-1">
+                <li v-for="(perm, index) in user.permissions" :key="index">
+                  {{ perm }}
+                </li>
+              </ul>
+            </template>
+            <template v-else>-</template>
+          </td>
+          <td class="px-6 py-4 border border-gray-200 text-center">
+            <button @click="actionClickEdit(user.id)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+              Edit
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-            </tr>
-          </thead>
-          <tbody class="text-gray-600  h-[400px]">
-            <tr
-              v-for="(user,key) in filteredUsers"
-              :key="key"
-              class="bg-white border-b  border-gray-200 hover:bg-gray-50"
-            >
-              <td class="w-4 p-4">
-                {{ key + 1 }}
-              </td>
-              <td class="px-6 py-4 capitalize">{{ user.name }}</td>
-              <td class="px-6 py-4">{{ user.email }}</td>
-             <td class="px-6 py-4">
-              <span v-if="user.roles && user.roles.length > 0">{{ user.roles.join(', ') }}</span>
-              <span v-else>-</span>
-            </td>
-
-             <td class="px-6 py-4">
-                <span v-if="user.permissions && user.permissions.length > 0">{{ user.permissions.join(', ') }}</span>
-                <span v-else>-</span>
-              </td>
-
-              <td class="px-6 py-4">
-               <button @click=actionClickEdit(user.id) class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
-               </td>
-              
-            </tr>
-          </tbody>
-        </table>
       </div>
 
 

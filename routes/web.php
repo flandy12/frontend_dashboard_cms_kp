@@ -33,7 +33,7 @@ Route::get('/register', function () {
 //     // })->name('dashboard');
 // });
 
-Route::prefix('/dashboard')->name('dashboard.')->group(function () {
+Route::prefix('/dashboard')->name('dashboard')->group(function () {
     Route::get('/', fn () => Inertia::render('Dashboard/Show', ['url' => 'dashboard']))->name('dashboard');
     Route::get('/user', fn () => Inertia::render('User/Show', ['url' => 'user']))->name('user');
     Route::get('/user-profile', fn () => Inertia::render('User-profile/Show', ['url' => 'user-profile']))->name('user-profile');
