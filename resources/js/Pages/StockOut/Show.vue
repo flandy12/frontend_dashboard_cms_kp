@@ -30,37 +30,27 @@ const filteredProducts = computed(() => {
     );
 });
 
-const exportData = async () => {
-    const header = "Product Name,Category,Quantity,Tanggal Input\n";
-    const rows = [];
+const exportData = async() =>{
+    try {
+        const response = await apiRequest({
+            url: "export/stockout",
+            method: "get",
+            responseType: "blob", // <- WAJIB untuk file binary seperti Excel
+        });
 
-    data.value.forEach((entry) => {
-        if (entry.type === "out") {
-            const productName = `"${entry.product.name}"`;
-            const category = entry.product.category?.name || "";
-            const quantity = entry.quantity;
-            const tanggalInput = new Date(entry.created_at)
-                .toISOString()
-                .split("T")[0];
-
-            const row = [productName, category, quantity, tanggalInput].join(
-                ","
-            );
-            rows.push(row);
+        if (response.status === 200) {
+           const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'stockout.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
-    });
-    const csvContent = header + rows.join("\n");
-    const encodedUri =
-        "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "stock-out.csv");
-    document.body.appendChild(link);
-    link.click();
-
-    await sendTelegramCSV(csvContent, "Laporan Stock Output hari ini.csv");
-};
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
 
 const getData = async () => {
     try {

@@ -144,9 +144,6 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <div>
-                            <button>Select All</button>
-                        </div>
                     </div>
                     <BaseTable :data="permissions" :columns="columns">
                         <template #actions="{ item }">

@@ -114,17 +114,17 @@ onMounted(() => {
                     <h1 class="text-2xl font-bold">Transaction</h1>
                 </div>
                 <div class="mb-4 flex justify-end gap-5">
-                    <button
+                    <!-- <button
                         @click="applyFilters"
                         class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
                     >
                         Sinkroninasi Data
-                    </button>
+                    </button> -->
                     <button
                         @click="exportCSV"
                         class="border text-black border-gray-600 text-sm px-4 py-2 rounded"
                     >
-                        Export Table
+                        Export
                     </button>
                 </div>
             </div>

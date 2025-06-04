@@ -30,37 +30,41 @@ const filteredProducts = computed(() => {
     );
 });
 
-const exportData = async () => {
-    const header = "Product Name,Category,Quantity,Tanggal Input\n";
-    const rows = [];
+const exportData = async() =>{
+    try {
+        const response = await apiRequest({
+            url: "export/stockin",
+            method: "get",
+            responseType: "blob", // <- WAJIB untuk file binary seperti Excel
+        });
 
-    data.value.forEach((entry) => {
-        if (entry.type === "in") {
-            const productName = `"${entry.product.name}"`;
-            const category = entry.product.category?.name || "";
-            const quantity = entry.quantity;
-            const tanggalInput = new Date(entry.created_at)
-                .toISOString()
-                .split("T")[0];
-
-            const row = [productName, category, quantity, tanggalInput].join(
-                ","
-            );
-            rows.push(row);
+        if (response.status === 200) {
+           const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'stockin.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
-    });
-    const csvContent = header + rows.join("\n");
-    const encodedUri =
-        "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+    } catch (err) {
+        console.error("Gagal mengambil produk:", err);
+    }
+}
 
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "stock-in.csv");
-    document.body.appendChild(link);
-    link.click();
+function openNewProductModal() {
+  isModalOpen.value = true;
+}
 
-    await sendTelegramCSV(csvContent, "Laporan Stock Input hari ini.csv");
-};
+function closeModal() {
+  isModalOpen.value = false;
+}
+
+function applyFilters() {
+  // Add your filter logic here
+  console.log('Filter button clicked');
+}
+
 
 const getData = async () => {
     try {

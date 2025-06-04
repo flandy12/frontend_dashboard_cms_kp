@@ -170,9 +170,6 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <div>
-                        <button>Select All</button>
-                    </div>
                     <BaseTable :data="users" :columns="columns">
                         <template #actions="{ item }">
                             <button

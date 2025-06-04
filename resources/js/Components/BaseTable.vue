@@ -19,16 +19,6 @@ function isImage(value) {
   <table class="w-full text-sm text-left text-gray-500">
     <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
       <tr class="text-center">
-        <th class="p-4">
-          <div class="flex items-center">
-            <input
-              id="checkbox-all-search"
-              type="checkbox"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 focus:ring-2"
-            />
-            <label for="checkbox-all-search" class="sr-only">checkbox</label>
-          </div>
-        </th>
         <th class="p-4">No</th>
         <th v-for="col in columns" :key="col.key" class="px-6 py-3">
           {{ col.label }}
@@ -42,17 +32,7 @@ function isImage(value) {
         :key="item.id"
         class="bg-white border-b hover:bg-gray-50"
       >
-        <td class="w-4 p-4">
-          <div class="flex items-center">
-            <input
-              :id="`checkbox-${key}`"
-              type="checkbox"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500"
-            />
-            <label :for="`checkbox-${key}`" class="sr-only">checkbox</label>
-          </div>
-        </td>
-
+      
         <td class="w-4 p-4 text-center">
           {{ key + 1 }}
         </td>
