@@ -5,8 +5,8 @@ import { Clock, CalendarDays, AlertCircle, Zap } from "lucide-vue-next";
 import { computed } from "vue";
 import apiRequest from "../API/main";
 import { getCookie } from "@/Pages/API/main.js";
-import AppLayout from '@/Layouts/AppLayout2.vue';
-import Welcome from '@/Components/Welcome.vue';
+import AppLayout from "@/Layouts/AppLayout2.vue";
+import Welcome from "@/Components/Welcome.vue";
 
 const props = defineProps({
     url: String,
@@ -147,17 +147,8 @@ const getCheckout = async () => {
 const isAllowedRole = computed(() =>
     ["Super Admin", "Owner", "Store Manager"].includes(permission.value.role)
 );
-onMounted(() => {
-    // Fetch data here
-    // Example:
-    // highestACoS.value = [
-    //     { campaign: "B08NYN3MT", spend: 30.25, sales: 149.85, acos: 149.85 },
-    //     { campaign: "Campaign - 3", spend: 40.0, sales: 134.0, acos: 134.5 },
-    //     { campaign: "Research - Ac", spend: 43.55, sales: 129.75, acos: 125.0 },
-    //     { campaign: "B087C75GQJ", spend: 45.85, sales: 113.0, acos: 119.45 },
-    //     { campaign: "House Number", spend: 54.0, sales: 99.55, acos: 85.0 },
-    // ];
 
+onMounted(() => {
     const userData = getCookie("user_data");
     try {
         permission.value = JSON.parse(userData || "{}");
@@ -314,11 +305,13 @@ onMounted(() => {
             <div v-if="!isAllowedRole">
                 <AppLayout title="Dashboard">
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                        <div
+                            class="bg-white overflow-hidden shadow-xl sm:rounded-lg"
+                        >
                             <Welcome />
                         </div>
                     </div>
-            </AppLayout>
+                </AppLayout>
             </div>
         </div>
     </MasterLayout>

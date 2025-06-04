@@ -2,6 +2,7 @@
 import { ref, onMounted, reactive } from "vue";
 import Modal from "@/Components/Modal.vue";
 import apiRequest from "../API/main";
+import sendTelegramNotification from "@/Telegram/telegramAPI";
 
 const props = defineProps({
     id: String,
@@ -110,15 +111,28 @@ const submit = async (menu) => {
 
     if (menu == "Checkout") {
         try {
-            await apiRequest({
+            const response = await apiRequest({
                 url: `checkout`,
                 method: "post",
                 data: CheckoutItem,
             });
 
-            // await getProduct(currentData.id);
             closeStockOutModal();
+
+            if (response.status == 201) {
+                const response = await apiRequest({
+                    url: `products/${currentData.id}`,
+                    method: "get",
+                });
+
+                if (response.data.stock <= 10) {
+                    await sendTelegramNotification(
+                        `stock sudah menipis yuk restok kembali, saat ini stock tinggal ${response.data.stock}`
+                    );
+                }
+            }
             alert("Stock updated successfully");
+
             window.location.href = "/dashboard/product";
         } catch (err) {
             console.error("Stock out failed:", err);

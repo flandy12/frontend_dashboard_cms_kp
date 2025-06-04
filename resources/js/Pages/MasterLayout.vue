@@ -58,22 +58,72 @@ watch(
 <template>
     <div class="flex w-full">
         <aside
-            class="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col justify-between"
+            :class="`
+            ${isCollapsed ? 'w-24' : 'w-64'}
+            'min-h-screen bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-300 ease-in-out'`"
         >
-            <div>
+            <div class="relative">
+                <!-- Hamburger Button -->
+                <button
+                    @click="isCollapsed = !isCollapsed"
+                    class="max-h-max absolute -right-5 top-16 z-10 bg-white border-4 border-gray-100 rounded-full px-4 py-2"
+                >
+                    <span v-if="isCollapsed">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 5l7 7-7 7M6 5l7 7-7 7"
+                            />
+                        </svg>
+                    </span>
+                    <span v-else>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 19l-7-7 7-7M18 19l-7-7 7-7"
+                            />
+                        </svg>
+                    </span>
+                </button>
                 <!-- Profile -->
                 <div class="p-4 font-bold text-lg border-b border-gray-200">
                     <div class="p-2 w-full">
                         <a href="/dashboard/user-profile">
-                            <div class="flex items-center space-x-2">
+                            <div
+                                class="relative flex items-center justify-center h-16 w-full"
+                            >
                                 <img
                                     :src="user.profile_url"
-                                    class="w-10 h-full object-cover"
+                                    :class="[
+                                        isCollapsed && 'absolute w-12 h-12',
+                                        'object-cover  transition-all duration-300 ease-in-out',
+                                    ]"
                                     alt="User Image"
                                 />
-                                <span class="uppercase" >Inventory App</span>
+                                <span v-if="!isCollapsed" class="ml-2 uppercase"
+                                    >Inventory App</span
+                                >
                             </div>
-                            <p class="text-sm mt-5 text-gray-500">
+                            <p
+                                v-if="!isCollapsed"
+                                class="text-sm mt-5 text-gray-500"
+                            >
                                 {{ user.name }} • {{ user.role }}
                             </p>
                         </a>
@@ -81,19 +131,11 @@ watch(
                 </div>
 
                 <!-- Sidebar Menu -->
-                <nav class="mt-6 space-y-1 relative">
-                    <!-- Hamburger Button -->
-                    <button
-                        @click="isCollapsed = !isCollapsed"
-                        class="absolute -right-4 top-0 z-10 bg-white border rounded-full shadow p-1"
-                    >
-                        <span v-if="isCollapsed">➡️</span>
-                        <span v-else>⬅️</span>
-                    </button>
+                <nav class="mt-6 space-y-1">
                     <div
-                       :class="[
-                            isCollapsed ? 'w-16' : 'w-64',
-                            'transition-all duration-300 ease-in-out',
+                        :class="[
+                            isCollapsed ? 'w-24' : 'w-64',
+                            ' transition-all duration-300 ease-in-out',
                         ]"
                     >
                         <a
@@ -105,7 +147,7 @@ watch(
                                 title="Dashboard"
                                 to="/dashboard"
                                 :active="props.url === 'dashboard'"
-                                :is-collapsed="isCollapsed"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -118,6 +160,7 @@ watch(
                                 title="User"
                                 to="/dashboard/user"
                                 :active="props.url === 'user'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -130,6 +173,7 @@ watch(
                                 title="Product"
                                 to="/dashboard/product"
                                 :active="props.url === 'product'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -142,6 +186,7 @@ watch(
                                 title="Category"
                                 to="/dashboard/category"
                                 :active="props.url === 'category'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -154,6 +199,7 @@ watch(
                                 title="Assign Role & Permission"
                                 to="/dashboard/role-permission"
                                 :active="props.url === 'role-permission'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -164,8 +210,8 @@ watch(
                             <SidebarItem
                                 icon="🛡️"
                                 title="Role"
-                                to="/dashboard/role"
                                 :active="props.url === 'role'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -178,6 +224,7 @@ watch(
                                 title="Permission"
                                 to="/dashboard/permission"
                                 :active="props.url === 'permission'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -190,6 +237,7 @@ watch(
                                 title="Report"
                                 to="/dashboard/report"
                                 :active="props.url === 'report'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -202,6 +250,7 @@ watch(
                                 title="Stock In"
                                 to="/dashboard/stock-in"
                                 :active="props.url === 'stock-in'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -214,6 +263,7 @@ watch(
                                 title="Stock Out"
                                 to="/dashboard/stock-out"
                                 :active="props.url === 'stock-out'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -226,6 +276,7 @@ watch(
                                 title="Transaction"
                                 to="/dashboard/transaction"
                                 :active="props.url === 'transaction'"
+                                :isCollapsed="isCollapsed"
                             />
                         </a>
 
@@ -233,7 +284,11 @@ watch(
                             @click="actionLogout"
                             class="bg-red-300 cursor-pointer block"
                         >
-                            <SidebarItem icon="🚪" title="Logout" />
+                            <SidebarItem
+                                icon="🚪"
+                                title="Logout"
+                                :isCollapsed="isCollapsed"
+                            />
                         </a>
                     </div>
                 </nav>
