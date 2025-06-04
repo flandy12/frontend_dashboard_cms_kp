@@ -131,7 +131,7 @@ onMounted(() => {
          <button
             @click="exportData"
             class="border text-black text-sm px-4 py-2 rounded border-gray-800"
-            v-if="hasPermission(permission, 'stock_out export')"
+            v-if="hasPermission(permission, 'stock_in export')"
 
           >
             Export
