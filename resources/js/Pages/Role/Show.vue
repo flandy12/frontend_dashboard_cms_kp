@@ -44,10 +44,10 @@ const fetchPermissions = async (roleId = null) => {
         if (roleId) {
             const rolePermissions = await apiRequest({
                 url: `roles/${roleId}/permissions`,
-                method: "get"
+                method: "get",
             });
 
-            console.log('rolePermissions response:', rolePermissions.data);
+            console.log("rolePermissions response:", rolePermissions.data);
 
             // Ambil array nama permission langsung (karena dari controller adalah array of string)
             selectedPermissions.value = rolePermissions.data.permissions;
@@ -55,7 +55,7 @@ const fetchPermissions = async (roleId = null) => {
     } catch (err) {
         console.error("Gagal mengambil permissions", err);
     }
-}
+};
 
 const submitFormGivePermission = async () => {
     const payload = { name: currentData.name };
@@ -79,8 +79,7 @@ const submitFormGivePermission = async () => {
             errors.value = err.response.data.errors;
         }
     }
-}
-
+};
 
 const getRole = async () => {
     try {
@@ -91,16 +90,16 @@ const getRole = async () => {
     } catch (err) {
         console.log("Gagal mengambil role", err);
     }
-}
+};
 
 const currentData = reactive({ id: null, name: "" });
 const isEditing = ref(false);
 
 function openNewProductModal(id = null) {
     fetchPermissions(); // Ambil permission saat modal dibuka
-    
+
     selectedPermissions.value = [];
-    
+
     if (id) {
         isEditing.value = true;
         getRoleById(id);
@@ -190,15 +189,9 @@ onMounted(() => {
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Role</h1>
-                <button
-                    @click="openNewProductModal(null)"
-                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-                >
-                    New Role
-                </button>
             </div>
             <!-- Add your main content here -->
-            <div class="relative overflow-x-auto">
+            <div class="overflow-x-auto">
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                     <div class="pb-4 flex justify-between items-center">
                         <div>
@@ -233,9 +226,13 @@ onMounted(() => {
                                 />
                             </div>
                         </div>
-
                         <div>
-                            <button>Select All</button>
+                            <button
+                                @click="openNewProductModal(null)"
+                                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
+                            >
+                                New Role
+                            </button>
                         </div>
                     </div>
                     <table
@@ -288,16 +285,22 @@ onMounted(() => {
                                 >
                                     {{ item.name }}
                                 </th>
-                               <td class="flex gap-5 items-center px-6 py-4">
+                                <td class="flex gap-5 items-center px-6 py-4">
                                     <a
-                                        @click.prevent="openNewProductModal(item.id)"
+                                        @click.prevent="
+                                            openNewProductModal(item.id)
+                                        "
                                         class="font-medium text-blue-600 dark:text-blue-500 hover:underline cursor-pointer"
                                     >
                                         Edit
                                     </a>
 
                                     <a
-                                        @click.prevent="openEditRoleModalGivePermission(item)"
+                                        @click.prevent="
+                                            openEditRoleModalGivePermission(
+                                                item
+                                            )
+                                        "
                                         class="font-medium text-blue-600 dark:text-blue-500 hover:underline cursor-pointer"
                                     >
                                         Give Permission
@@ -310,33 +313,10 @@ onMounted(() => {
                                         Remove
                                     </a>
                                 </td>
-
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <div class="flex flex-col items-center mt-5">
-            <!-- Help text -->
-            <span class="text-sm text-gray-700">
-                Showing <span class="font-semibold text-gray-900">1</span> to
-                <span class="font-semibold text-gray-900">10</span> of
-                <span class="font-semibold text-gray-900">100</span> Entries
-            </span>
-            <!-- Buttons -->
-            <div class="inline-flex mt-2 xs:mt-0">
-                <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900"
-                >
-                    Prev
-                </button>
-                <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900"
-                >
-                    Next
-                </button>
             </div>
         </div>
 
@@ -381,7 +361,6 @@ onMounted(() => {
                         </div>
                         <!-- Modal body -->
                         <div class="p-4 md:p-5 space-y-4">
-
                             <form class="" @submit.prevent="submitForm">
                                 <div class="mb-5">
                                     <label
@@ -405,88 +384,148 @@ onMounted(() => {
                                     </ul>
                                 </div>
 
-                            <div class="mb-5" v-if="dataPermission.length > 0">
-                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
-                              <select
-                                id="permissions"
-                                v-model="selectedPermissions"
-                                multiple
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              >
-                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
-                              </select>
-                            </div>
-                            
+                                <div
+                                    class="mb-5"
+                                    v-if="dataPermission.length > 0"
+                                >
+                                    <label
+                                        for="permissions"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                        >Select Permissions</label
+                                    >
+                                    <select
+                                        id="permissions"
+                                        v-model="selectedPermissions"
+                                        multiple
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    >
+                                        <option
+                                            v-for="item in dataPermission"
+                                            :key="item.id"
+                                            :value="item.name"
+                                        >
+                                            {{ item.name }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                            <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
-
-                        </form>
+                                <button
+                                    data-modal-hide="default-modal"
+                                    type="submit"
+                                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                >
+                                    Submit
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </Modal>
 
-         <!-- Give Permission -->
-        <Modal :show="isModalOpenGivePermission" @close="isModalOpenGivePermission = false">
+        <!-- Give Permission -->
+        <Modal
+            :show="isModalOpenGivePermission"
+            @close="isModalOpenGivePermission = false"
+        >
             <!-- Main modal -->
             <div id="">
                 <div class="relative p-4 w-full max-w-2xl max-h-full">
                     <!-- Modal content -->
-                    <div class="relative rounded-lg shadow-sm ">
+                    <div class="relative rounded-lg shadow-sm">
                         <!-- Modal header -->
-                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t  border-gray-200">
-                            <h3 class="text-xl font-semibold text-gray-900 ">
+                        <div
+                            class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
+                        >
+                            <h3 class="text-xl font-semibold text-gray-900">
                                 New Role
                             </h3>
-                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center " data-modal-hide="default-modal" @click="isModalOpenGivePermission = false">
-                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            <button
+                                type="button"
+                                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+                                data-modal-hide="default-modal"
+                                @click="isModalOpenGivePermission = false"
+                            >
+                                <svg
+                                    class="w-3 h-3"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 14 14"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                    />
                                 </svg>
                                 <span class="sr-only">Close modal</span>
                             </button>
                         </div>
                         <!-- Modal body -->
                         <div class="p-4 md:p-5 space-y-4">
-                        <form @submit.prevent="submitFormGivePermission">
-                            <div class="mb-5">
-                                <label for="base-input" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
-                                <input type="text" id="base-input" v-model="currentData.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
-                                <ul
-                                    v-if="errors"
-                                    class="text-red-500 text-sm mt-1"
-                                >
-                                    <li
-                                        v-for="(
-                                            error
-                                        ) in errors.name"
+                            <form @submit.prevent="submitFormGivePermission">
+                                <div class="mb-5">
+                                    <label
+                                        for="base-input"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                        >Name</label
                                     >
-                                        {{ error }}
-                                    </li>
-                                </ul>
-                            </div>
+                                    <input
+                                        type="text"
+                                        id="base-input"
+                                        v-model="currentData.name"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    />
+                                    <ul
+                                        v-if="errors"
+                                        class="text-red-500 text-sm mt-1"
+                                    >
+                                        <li v-for="error in errors.name">
+                                            {{ error }}
+                                        </li>
+                                    </ul>
+                                </div>
 
-                            <div class="mb-5" v-if="dataPermission.length > 0">
-                              <label for="permissions" class="block mb-2 text-sm font-medium text-gray-900">Select Permissions</label>
-                              <select
-                                id="permissions"
-                                v-model="selectedPermissions"
-                                multiple
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              >
-                                <option v-for="item in dataPermission" :key="item.id" :value="item.name">{{ item.name }}</option>
-                              </select>
-                            </div>
-                            
+                                <div
+                                    class="mb-5"
+                                    v-if="dataPermission.length > 0"
+                                >
+                                    <label
+                                        for="permissions"
+                                        class="block mb-2 text-sm font-medium text-gray-900"
+                                        >Select Permissions</label
+                                    >
+                                    <select
+                                        id="permissions"
+                                        v-model="selectedPermissions"
+                                        multiple
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    >
+                                        <option
+                                            v-for="item in dataPermission"
+                                            :key="item.id"
+                                            :value="item.name"
+                                        >
+                                            {{ item.name }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                            <button data-modal-hide="default-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Submit</button>
-                        </form>
+                                <button
+                                    data-modal-hide="default-modal"
+                                    type="submit"
+                                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                >
+                                    Submit
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </Modal>
-        
     </MasterLayout>
 </template>
-

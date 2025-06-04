@@ -2,7 +2,7 @@
 import { ref, onMounted, reactive } from "vue";
 import Modal from "@/Components/Modal.vue";
 import apiRequest from "../API/main";
-import sendTelegramNotification from "@/Telegram/telegramAPI";
+import { sendTelegramNotification } from "@/Telegram/telegramAPI";
 
 const props = defineProps({
     id: String,

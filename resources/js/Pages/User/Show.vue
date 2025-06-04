@@ -1,13 +1,24 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import apiRequest from "../API/main";
 import BaseTable from "@/Components/BaseTable.vue";
-import { getCookie, hasPermission } from '@/Pages/API/main.js'
+import { getCookie, hasPermission } from "@/Pages/API/main.js";
 
 const props = defineProps({
     url: String,
+});
+const currentPage = ref(1);
+const perpage = ref(6);
+const paginatedUsers = computed(() => {
+    const start = (currentPage.value - 1) * perpage.value;
+    const end = start + perpage.value;
+    return filteredUsers.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredUsers.value.length / perpage.value);
 });
 
 // Check Permission
@@ -26,6 +37,7 @@ const currentUser = reactive({
     email: "",
     password: "",
 });
+const searchQuery = ref("");
 const isEditing = ref(false);
 const isModalOpen = ref(false);
 
@@ -40,9 +52,12 @@ function openModal(user) {
     isModalOpen.value = true;
 }
 
-function applyFilters() {
-    console.console.log("Filter button clicked");
-}
+const filteredUsers = computed(() => {
+    if (!searchQuery.value) return users.value;
+    return users.value.filter((item) =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+});
 
 const submitForm = async () => {
     const formData = {
@@ -108,7 +123,6 @@ const deleteUser = async (id) => {
 };
 
 onMounted(() => {
-
     const userData = getCookie("user_data");
     try {
         permission.value = JSON.parse(userData || "{}");
@@ -118,19 +132,16 @@ onMounted(() => {
 
     getUsers();
 });
+
+watch(searchQuery, () => {
+    currentPage.value = 1;
+});
 </script>
 <template>
     <MasterLayout :url="props.url">
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">User</h1>
-                <button
-                    @click="openModal(null)"
-                    v-if="hasPermission(permission, 'user create')"
-                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-                >
-                    New User
-                </button>
             </div>
             <!-- Add your main content here -->
             <div class="overflow-x-auto">
@@ -161,6 +172,7 @@ onMounted(() => {
                                     </svg>
                                 </div>
                                 <input
+                                    v-model="searchQuery"
                                     type="text"
                                     id="table-search"
                                     class="w-52 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
@@ -168,12 +180,18 @@ onMounted(() => {
                                 />
                             </div>
                         </div>
+                        <div>
+                            <button
+                                @click="openModal(null)"
+                                v-if="hasPermission(permission, 'user create')"
+                                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
+                            >
+                                New User
+                            </button>
+                        </div>
                     </div>
 
-                    <div>
-                        <button>Select All</button>
-                    </div>
-                    <BaseTable :data="users" :columns="columns">
+                    <BaseTable :data="paginatedUsers" :columns="columns">
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"
@@ -196,21 +214,23 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col items-center mt-5">
-            <!-- Help text -->
-            <span class="text-sm text-gray-700 dark:text-gray-400">
-                Showing <span class="font-semibold text-gray-900">1</span> to
-                <span class="font-semibold text-gray-900">10</span> of
-                <span class="font-semibold text-gray-900">100</span> Entries
+            <span class="text-sm text-gray-700">
+                Page {{ currentPage }} of {{ totalPages }}
             </span>
             <!-- Buttons -->
-            <div class="inline-flex mt-5 xs:mt-0">
+            <div class="inline-flex mt-5 xs:mt-0 space-x-2">
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    :disabled="currentPage === 1"
+                    @click="currentPage--"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Prev
                 </button>
+
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    :disabled="currentPage === totalPages"
+                    @click="currentPage++"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Next
                 </button>
