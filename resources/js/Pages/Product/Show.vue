@@ -5,7 +5,7 @@ import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
 import apiRequest from "../API/main";
 import sendTelegramNotification from "@/Telegram/telegramAPI.js";
-import { getCookie, hasPermission, formatRupiah } from '@/Pages/API/main.js'
+import { getCookie, hasPermission, formatRupiah } from "@/Pages/API/main.js";
 
 // Check Permission
 const permission = ref({});
@@ -174,7 +174,7 @@ const submitForm = async () => {
         }
 
         closeModal();
-        location.reload();
+        // location.reload();
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
         console.log(err.response);
@@ -239,8 +239,8 @@ const imagePreview = computed(() => {
     return null;
 });
 
-const getProductId =  async(id) => {
-      try {
+const getProductId = async (id) => {
+    try {
         const response = await apiRequest({
             url: `products/${id}`,
             method: "get",
@@ -252,10 +252,9 @@ const getProductId =  async(id) => {
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
     }
-}
+};
 
 onMounted(() => {
-    
     const userData = getCookie("user_data");
     try {
         permission.value = JSON.parse(userData || "{}");
@@ -331,7 +330,6 @@ onMounted(() => {
                         </button>
                     </template>
                 </BaseTable>
-
             </div>
 
             <div class="flex flex-col items-center mt-5">
@@ -679,7 +677,11 @@ onMounted(() => {
                                             type="submit"
                                             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                                         >
-                                            {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+                                            {{
+                                                isSubmitting
+                                                    ? "Submitting..."
+                                                    : "Submit"
+                                            }}
                                         </button>
                                     </div>
                                 </form>

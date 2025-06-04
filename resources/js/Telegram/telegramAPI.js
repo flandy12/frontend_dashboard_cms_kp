@@ -10,14 +10,14 @@ const sendTelegramNotification = async (message) => {
     const params = {
         chat_id: chatId,
         text: message,
-        parse_mode: 'HTML'
+        parse_mode: "HTML",
     };
 
     try {
         const response = await apiRequest({
             url: url_master,
             method: "get",
-            params: params // gunakan `params` untuk query string dalam GET request
+            params: params, // gunakan `params` untuk query string dalam GET request
         });
 
         if (response.status === 200) {
@@ -28,5 +28,34 @@ const sendTelegramNotification = async (message) => {
     }
 };
 
+const sendTelegramCSV = async (csvText, filename = "file.csv") => {
+    const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+    const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
-export default sendTelegramNotification;
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
+
+    const blob = new Blob([csvText], { type: "text/csv" });
+    const formData = new FormData();
+    formData.append("chat_id", chatId);
+    formData.append("document", blob, filename);
+
+    try {
+        const response = await fetch(telegramUrl, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (response.ok) {
+            console.log("CSV berhasil dikirim ke Telegram.");
+        } else {
+            console.error(
+                "Gagal kirim CSV ke Telegram:",
+                await response.text()
+            );
+        }
+    } catch (err) {
+        console.error("Error kirim file ke Telegram:", err);
+    }
+};
+
+export { sendTelegramNotification, sendTelegramCSV };
