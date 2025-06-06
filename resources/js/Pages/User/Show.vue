@@ -191,11 +191,7 @@ watch(searchQuery, () => {
                         </div>
                     </div>
 
-<<<<<<< HEAD
-                    <BaseTable :data="users" :columns="columns">
-=======
                     <BaseTable :data="paginatedUsers" :columns="columns">
->>>>>>> dash
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"

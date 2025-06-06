@@ -95,28 +95,6 @@ onMounted(() => {
             <div class="relative overflow-x-auto">
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                     <div class="overflow-x-auto p-4">
-<<<<<<< HEAD
-                    <h2 class="text-xl font-bold mb-4">Laporan Produk Terlaris - Juni 2025</h2>
-                    <table class="min-w-full bg-white border border-gray-200 rounded-xl shadow">
-                        <thead>
-                        <tr class="bg-gray-100 text-gray-700 text-left text-sm">
-                            <th class="px-4 py-2 border-b">No</th>
-                            <th class="px-4 py-2 border-b">Nama Produk</th>
-                            <th class="px-4 py-2 border-b">Terjual</th>
-                            <th class="px-4 py-2 border-b">Total Penjualan</th>
-                        </tr>
-                        </thead>
-                        <tbody class="text-sm text-gray-800">
-                        <tr class="hover:bg-gray-50" v-for="(item, key) in data">
-                            <td class="px-4 py-2 border-b">{{key+1}}</td>
-                            <td class="px-4 py-2 border-b">{{item.nama}}</td>
-                            <td class="px-4 py-2 border-b">{{item.total_terjual}}</td>
-                            <td class="px-4 py-2 border-b">{{formatRupiah(item.total_pendapatan)}}</td>
-                        </tr>
-                        <!-- Tambah baris sesuai kebutuhan -->
-                        </tbody>
-                    </table>
-=======
                         <h2 class="text-xl font-bold mb-4">
                             Laporan Produk Terlaris - Juni 2025
                         </h2>
@@ -160,7 +138,6 @@ onMounted(() => {
                                 <!-- Tambah baris sesuai kebutuhan -->
                             </tbody>
                         </table>
->>>>>>> dash
                     </div>
                 </div>
             </div>
