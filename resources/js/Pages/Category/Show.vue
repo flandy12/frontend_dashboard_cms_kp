@@ -1,16 +1,28 @@
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import apiRequest from "../API/main";
 import Modal from "@/Components/Modal.vue";
 import BaseTable from "@/Components/BaseTable.vue";
-import { getCookie, hasPermission } from '@/Pages/API/main.js'
+import { getCookie, hasPermission } from "@/Pages/API/main.js";
 
 // Check Permission
 const permission = ref({});
 
 const props = defineProps({
     url: String,
+});
+
+const currentPage = ref(1);
+const perpage = ref(6);
+const paginatedCategories = computed(() => {
+    const start = (currentPage.value - 1) * perpage.value;
+    const end = start + perpage.value;
+    return filteredCategory.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredCategory.value.length / perpage.value);
 });
 
 const categories = ref([]);
@@ -20,14 +32,12 @@ const errors = ref([]);
 const currentCategory = reactive({ id: null, name: "" });
 const isEditing = ref(false);
 const isModalOpen = ref(false);
-const searchQuery = ref('');
+const searchQuery = ref("");
 
-const filteredProducts = computed(() => {
+const filteredCategory = computed(() => {
     if (!searchQuery.value) return categories.value;
-    return categories.value.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
+    return categories.value.filter((item) =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
 });
 
@@ -76,6 +86,7 @@ const getCategories = async () => {
         });
         if (response.status == 200) {
             categories.value = response.data.data;
+            console.log(response.data.data);
         }
     } catch (err) {
         console.log("Gagal mengambil category", err);
@@ -101,14 +112,18 @@ const deleteCategory = async (id) => {
     }
 };
 
-onMounted( () => {
+onMounted(() => {
     const userData = getCookie("user_data");
     try {
         permission.value = JSON.parse(userData || "{}");
     } catch {
         permission.value = {};
     }
-     getCategories();
+    getCategories();
+});
+
+watch(searchQuery, () => {
+    currentPage.value = 1;
 });
 </script>
 
@@ -117,13 +132,6 @@ onMounted( () => {
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Category</h1>
-                <button
-                    @click="openModal(null)"
-                    v-if="hasPermission(permission, 'category create')"
-                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-                >
-                    New Category
-                </button>
             </div>
             <!-- Add your main content here -->
             <div class="relative overflow-x-auto">
@@ -154,6 +162,7 @@ onMounted( () => {
                                     </svg>
                                 </div>
                                 <input
+                                    v-model="searchQuery"
                                     type="text"
                                     id="table-search"
                                     class="w-52 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
@@ -162,18 +171,33 @@ onMounted( () => {
                             </div>
                         </div>
 
+                        <div>
+                            <button
+                                @click="openModal(null)"
+                                v-if="
+                                    hasPermission(permission, 'category create')
+                                "
+                                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
+                            >
+                                New Category
+                            </button>
+                        </div>
                     </div>
-                    <BaseTable :data="filteredProducts" :columns="columns">
+                    <BaseTable :data="paginatedCategories" :columns="columns">
                         <template #actions="{ item }">
                             <button
-                                v-if="hasPermission(permission, 'category edit')"
+                                v-if="
+                                    hasPermission(permission, 'category edit')
+                                "
                                 @click="openModal(item)"
                                 class="text-blue-600 hover:underline mr-2"
                             >
                                 Edit
                             </button>
                             <button
-                                v-if="hasPermission(permission, 'category remove')"
+                                v-if="
+                                    hasPermission(permission, 'category remove')
+                                "
                                 @click="deleteCategory(item.id)"
                                 class="text-red-600 hover:underline"
                             >
@@ -186,21 +210,23 @@ onMounted( () => {
         </div>
 
         <div class="flex flex-col items-center mt-5">
-            <!-- Help text -->
             <span class="text-sm text-gray-700">
-                Showing <span class="font-semibold text-gray-900">1</span> to
-                <span class="font-semibold text-gray-900">10</span> of
-                <span class="font-semibold text-gray-900">100</span> Entries
+                Page {{ currentPage }} of {{ totalPages }}
             </span>
             <!-- Buttons -->
-            <div class="inline-flex mt-2 xs:mt-0">
+            <div class="inline-flex mt-5 xs:mt-0 space-x-2">
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900"
+                    :disabled="currentPage === 1"
+                    @click="currentPage--"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Prev
                 </button>
+
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900"
+                    :disabled="currentPage === totalPages"
+                    @click="currentPage++"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Next
                 </button>

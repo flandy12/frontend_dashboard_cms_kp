@@ -1,23 +1,33 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import apiRequest from "@/Pages/API/main.js";
 import { getCookie, hasPermission } from "@/Pages/API/main.js";
 import { sendTelegramCSV } from "@/Telegram/telegramAPI";
 
-// Check Permission
-const permission = ref({});
-
 const props = defineProps({
     url: String,
 });
 
+const currentPage = ref(1);
+const perpage = ref(6);
+const paginatedStock = computed(() => {
+    const start = (currentPage.value - 1) * perpage.value;
+    const end = start + perpage.value;
+    return filteredStock.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredStock.value.length / perpage.value);
+});
+
+const permission = ref({});
 const searchQuery = ref("");
 const isModalOpen = ref(false);
 const data = ref([]);
 
-const filteredProducts = computed(() => {
+const filteredStock = computed(() => {
     if (!searchQuery.value) return data.value;
     return data.value.filter(
         (item) =>
@@ -92,6 +102,10 @@ onMounted(() => {
         permission.value = {};
     }
 });
+
+watch(searchQuery, () => {
+    currentPage.value = 1;
+});
 </script>
 
 <template>
@@ -141,12 +155,6 @@ onMounted(() => {
                     >
                         Export
                     </button>
-                    <!-- <button
-            @click="applyFilters"
-            class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-          >
-            Filters
-          </button> -->
                 </div>
             </div>
 
@@ -170,7 +178,7 @@ onMounted(() => {
                     </thead>
                     <tbody class="text-gray-600">
                         <tr
-                            v-for="(product, key) in filteredProducts"
+                            v-for="(product, key) in paginatedStock"
                             :key="product.id"
                             class="bg-white border-b border-gray-200 hover:bg-gray-50"
                         >
@@ -204,23 +212,25 @@ onMounted(() => {
                     </tbody>
                 </table>
             </div>
+
             <div class="flex flex-col items-center mt-5">
-                <!-- Help text -->
                 <span class="text-sm text-gray-700">
-                    Showing
-                    <span class="font-semibold text-gray-900">1</span> to
-                    <span class="font-semibold text-gray-900">10</span> of
-                    <span class="font-semibold text-gray-900">100</span> Entries
+                    Page {{ currentPage }} of {{ totalPages }}
                 </span>
                 <!-- Buttons -->
-                <div class="inline-flex mt-2 xs:mt-0">
+                <div class="inline-flex mt-5 xs:mt-0 space-x-2">
                     <button
-                        class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900"
+                        :disabled="currentPage === 1"
+                        @click="currentPage--"
+                        class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                     >
                         Prev
                     </button>
+
                     <button
-                        class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900"
+                        :disabled="currentPage === totalPages"
+                        @click="currentPage++"
+                        class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                     >
                         Next
                     </button>

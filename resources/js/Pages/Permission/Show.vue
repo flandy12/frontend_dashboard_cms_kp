@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import MasterLayout from "../MasterLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import apiRequest from "../API/main";
@@ -9,6 +9,18 @@ const props = defineProps({
     url: String,
 });
 
+const currentPage = ref(1);
+const perpage = ref(6);
+const paginatedPermission = computed(() => {
+    const start = (currentPage.value - 1) * perpage.value;
+    const end = start + perpage.value;
+    return filteredPermission.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredPermission.value.length / perpage.value);
+});
+
 const permissions = ref([]);
 const columns = [{ label: "Nama", key: "name" }];
 const errors = ref([]);
@@ -16,6 +28,7 @@ const errors = ref([]);
 const currentPermission = reactive({ id: null, name: "" });
 const isEditing = ref(false);
 const isModalOpen = ref(false);
+const searchQuery = ref("");
 
 function openModal(permission) {
     isEditing.value = !!permission;
@@ -26,11 +39,12 @@ function openModal(permission) {
     isModalOpen.value = true;
 }
 
-function applyFilters() {
-    // Add your filter logic here
-    console.log("Filter button clicked");
-}
-
+const filteredPermission = computed(() => {
+    if (!searchQuery.value) return permissions.value;
+    return permissions.value.filter((item) =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+});
 const submitForm = async () => {
     try {
         if (isEditing.value) {
@@ -64,7 +78,7 @@ const getPermission = async () => {
 
         if (response.status == 200) {
             permissions.value = response.data;
-            console.log(response);
+            console.log(response.data);
         }
     } catch (err) {
         console.log("Gagal mengambil permission", err);
@@ -93,6 +107,10 @@ const deletePermission = async (id) => {
 onMounted(() => {
     getPermission();
 });
+
+watch(searchQuery, () => {
+    currentPage.value = 1;
+});
 </script>
 
 <template>
@@ -100,15 +118,9 @@ onMounted(() => {
         <div class="container mx-auto">
             <div class="flex justify-between mb-5 items-center">
                 <h1 class="text-2xl font-bold">Permission</h1>
-                <button
-                    @click="openModal(null)"
-                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded"
-                >
-                    New Permission
-                </button>
             </div>
             <!-- Add your main content here -->
-            <div class="relative overflow-x-auto">
+            <div class="overflow-x-auto">
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                     <div class="pb-4 flex justify-between items-center">
                         <div>
@@ -136,6 +148,7 @@ onMounted(() => {
                                     </svg>
                                 </div>
                                 <input
+                                    v-model="searchQuery"
                                     type="text"
                                     id="table-search"
                                     class="w-52 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
@@ -143,9 +156,16 @@ onMounted(() => {
                                 />
                             </div>
                         </div>
-
+                        <div>
+                            <button
+                                @click="openModal(null)"
+                                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
+                            >
+                                New Permission
+                            </button>
+                        </div>
                     </div>
-                    <BaseTable :data="permissions" :columns="columns">
+                    <BaseTable :data="paginatedPermission" :columns="columns">
                         <template #actions="{ item }">
                             <button
                                 @click="openModal(item)"
@@ -166,26 +186,29 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col items-center mt-5">
-            <!-- Help text -->
             <span class="text-sm text-gray-700">
-                Showing <span class="font-semibold text-gray-900">1</span> to
-                <span class="font-semibold text-gray-900">10</span> of
-                <span class="font-semibold text-gray-900">100</span> Entries
+                Page {{ currentPage }} of {{ totalPages }}
             </span>
             <!-- Buttons -->
-            <div class="inline-flex mt-2 xs:mt-0">
+            <div class="inline-flex mt-5 xs:mt-0 space-x-2">
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 rounded-s hover:bg-gray-900"
+                    :disabled="currentPage === 1"
+                    @click="currentPage--"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Prev
                 </button>
+
                 <button
-                    class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-600 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900"
+                    :disabled="currentPage === totalPages"
+                    @click="currentPage++"
+                    class="px-4 h-10 bg-gray-800 text-white rounded disabled:opacity-50"
                 >
                     Next
                 </button>
             </div>
         </div>
+
         <Modal :show="isModalOpen" @close="isModalOpen = false">
             <!-- Main modal -->
             <div id="">
