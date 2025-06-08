@@ -124,10 +124,11 @@ const submit = async (menu) => {
                     url: `products/${currentData.id}`,
                     method: "get",
                 });
+                console.log(response);
 
                 if (response.data.stock <= 10) {
                     await sendTelegramNotification(
-                        `stock sudah menipis yuk restok kembali, saat ini stock tinggal ${response.data.stock}`
+                        `stock product ${response.data.name} sudah menipis yuk restok kembali, saat ini stock product tinggal ${response.data.stock}`
                     );
                 }
             }
@@ -140,7 +141,7 @@ const submit = async (menu) => {
         }
     } else {
         const stockIn = {
-            product_id: currentData.id,
+            product_id: Number(currentData.id),
             quantity: stockOutQuantity.value,
         };
 
@@ -151,7 +152,6 @@ const submit = async (menu) => {
                 data: stockIn,
             });
 
-            // Refresh product info
             await getProduct(currentData.id);
             closeStockOutModal();
             alert("Stock updated successfully");

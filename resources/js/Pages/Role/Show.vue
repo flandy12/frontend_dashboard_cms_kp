@@ -96,7 +96,7 @@ const currentData = reactive({ id: null, name: "" });
 const isEditing = ref(false);
 
 function openNewProductModal(id = null) {
-    fetchPermissions(); // Ambil permission saat modal dibuka
+    fetchPermissions();
 
     selectedPermissions.value = [];
 
@@ -110,11 +110,6 @@ function openNewProductModal(id = null) {
     }
 
     isModalOpen.value = true;
-}
-
-function applyFilters() {
-    // Add your filter logic here
-    console.log("Filter button clicked");
 }
 
 const submitForm = async () => {

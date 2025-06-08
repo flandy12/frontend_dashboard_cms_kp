@@ -163,7 +163,7 @@ onMounted(() => {
                                         >
                                             <div class="mb-5">
                                                 <label
-                                                    for="name"
+                                                    :for="isEditMode && 'name'"
                                                     class="block mb-2 text-sm font-medium text-gray-900"
                                                 >
                                                     {{
@@ -196,7 +196,7 @@ onMounted(() => {
                                             </div>
                                             <div class="mb-5">
                                                 <label
-                                                    for="email"
+                                                    :for="isEditMode && 'email'"
                                                     class="block mb-2 text-sm font-medium text-gray-900"
                                                 >
                                                     {{
@@ -229,7 +229,9 @@ onMounted(() => {
                                             </div>
                                             <div class="mb-5 relative">
                                                 <label
-                                                    for="password"
+                                                    :for="
+                                                        isEditMode && 'password'
+                                                    "
                                                     class="block mb-2 text-sm font-medium text-gray-900"
                                                 >
                                                     {{

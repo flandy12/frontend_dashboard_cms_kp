@@ -38,7 +38,9 @@ const permission = ref({});
 const totalProduct = ref(0);
 const totalStockIn = ref(0);
 const totalStockOut = ref(0);
+const totalTransaction = ref(0);
 const transactions = ref([]);
+const bestseller = ref([]);
 
 const tasks = computed(() => [
     {
@@ -62,20 +64,13 @@ const tasks = computed(() => [
         iconBg: "bg-indigo-600",
         bgColor: "bg-indigo-50",
     },
-    // {
-    //     title: "Pending Task",
-    //     count: "2/34 Task",
-    //     icon: Clock,
-    //     iconBg: "bg-red-500",
-    //     bgColor: "bg-orange-50",
-    // },
-]);
-
-const summary = ref([
-    { label: "Overview", count: 1552, color: "bg-blue-100 text-blue-700" },
-    { label: "Campaigns", count: 2847, color: "bg-pink-100 text-pink-700" },
-    { label: "Ad Group", count: 1806, color: "bg-purple-100 text-purple-700" },
-    { label: "Keywords", count: 3095, color: "bg-yellow-100 text-yellow-700" },
+    {
+        title: "Transaction",
+        count: `${totalTransaction.value} / day`,
+        icon: Clock,
+        iconBg: "bg-red-500",
+        bgColor: "bg-orange-50",
+    },
 ]);
 
 const getProducts = async () => {
@@ -132,15 +127,30 @@ const getCheckout = async () => {
             method: "get",
         });
         if (response.status === 200) {
+            const today = new Date();
+            totalTransaction.value = response.data.filter((i) => {
+                const d = new Date(i.created_at);
+                return d.toDateString() === today.toDateString();
+            }).length;
+
             const sorted = [...response.data].sort(
                 (a, b) => new Date(b.created_at) - new Date(a.created_at)
             );
 
             transactions.value = sorted.slice(0, 4);
-            console.log(response.data);
         }
     } catch (err) {
         console.log("Gagal mengambil Stock Out", err);
+    }
+};
+
+const getProductBestSeller = async () => {
+    try {
+        const response = await apiRequest("checkout/bestseller", {}, "GET");
+        bestseller.value = response.data.data;
+    } catch (err) {
+        console.log(err);
+        console.error("Gagal mengambil produk:", err);
     }
 };
 
@@ -159,6 +169,7 @@ onMounted(() => {
     getStockIn();
     getStockOut();
     getCheckout();
+    getProductBestSeller();
 });
 </script>
 
@@ -209,14 +220,22 @@ onMounted(() => {
                         <h2 class="text-lg font-bold mb-4">Best Seller</h2>
                         <ul>
                             <li
-                                v-for="item in summary"
-                                :key="item.label"
+                                v-for="(item, index) in bestseller"
+                                :key="item.nama"
                                 class="flex justify-between items-center mb-2 p-2 rounded-lg"
-                                :class="item.color"
+                                :class="[
+                                    'flex justify-between items-center mb-2 p-2 rounded-lg',
+                                    [
+                                        'bg-blue-100 text-blue-700',
+                                        'bg-pink-100 text-pink-700',
+                                        'bg-purple-100 text-purple-700',
+                                        'bg-yellow-100 text-yellow-700',
+                                    ][index],
+                                ]"
                             >
-                                <span>{{ item.label }}</span>
+                                <span class="text-sm">{{ item.nama }}</span>
                                 <span class="font-semibold">{{
-                                    item.count.toLocaleString()
+                                    item.total_terjual.toLocaleString()
                                 }}</span>
                             </li>
                         </ul>
@@ -256,8 +275,9 @@ onMounted(() => {
                     <div class="bg-white rounded-xl shadow p-5 overflow-auto">
                         <h2 class="text-lg font-bold mb-4">Transactions</h2>
                         <table class="min-w-full text-sm">
-                            <thead class="text-left text-gray-500 border-b">
+                            <thead class="text-center text-gray-500 border-b">
                                 <tr>
+                                    <th class="py-2 pr-4">Tanggal</th>
                                     <th class="py-2 pr-4">Product Name</th>
                                     <th class="py-2 pr-4">Total Price</th>
                                     <th class="py-2">Payment Method</th>
@@ -267,11 +287,19 @@ onMounted(() => {
                                 <tr
                                     v-for="item in transactions"
                                     :key="item.id"
-                                    class="border-t hover:bg-gray-50"
+                                    class="border-t hover:bg-gray-50 text-center"
                                 >
-                                    <!-- <td class="py-2 pr-4">
-                                        {{ item.id }}
-                                    </td> -->
+                                    <td class="py-2 pr-4">
+                                        {{
+                                            new Date(
+                                                item.created_at
+                                            ).toLocaleDateString("id-ID", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                            })
+                                        }}
+                                    </td>
                                     <td class="py-2 pr-4">
                                         <ul>
                                             <li

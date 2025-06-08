@@ -15,11 +15,11 @@ const perpage = ref(6);
 const paginatedProduct = computed(() => {
     const start = (currentPage.value - 1) * perpage.value;
     const end = start + perpage.value;
-    return products.value.slice(start, end);
+    return filteredProducts.value.slice(start, end);
 });
 
 const totalPages = computed(() => {
-    return Math.ceil(products.value.length / perpage.value);
+    return Math.ceil(filteredProducts.value.length / perpage.value);
 });
 
 const columns = [
@@ -97,11 +97,6 @@ function closeModal() {
     isModalOpen.value = false;
 }
 
-function applyFilters() {
-    // Add your filter logic here
-    console.log("Filter button clicked");
-}
-
 function handleImageUpload(event) {
     const file = event.target.files[0];
 
@@ -135,7 +130,7 @@ const getProduct = async () => {
 
         if (response.status === 200) {
             products.value = response.data.data;
-            // console.log(response.data.data);
+            console.log(response.data.data);
         }
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
@@ -170,7 +165,7 @@ const submitForm = async () => {
                 },
             });
         } else {
-            const response = await apiRequest({
+            await apiRequest({
                 url: "products",
                 method: "post",
                 data: formData,
@@ -179,11 +174,11 @@ const submitForm = async () => {
                 },
             });
 
-            sendTelegramNotification("Berhasil Membuat Produk");
+            // sendTelegramNotification("Berhasil Membuat Produk");
         }
 
         closeModal();
-        // location.reload();
+        location.reload();
     } catch (err) {
         console.error("Gagal mengambil produk:", err);
         console.log(err.response);
@@ -311,26 +306,27 @@ onMounted(() => {
                                     </svg>
                                 </div>
                                 <input
+                                    v-model="searchQuery"
                                     type="text"
                                     id="table-search"
                                     class="w-52 block pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Search for users"
+                                    placeholder="Search for product, size"
                                 />
                             </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div>
                             <button
+                                @click="openModal(null)"
                                 v-if="
                                     hasPermission(permission, 'product create')
                                 "
-                                @click="openModal(null)"
                                 class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
                             >
                                 New Product
                             </button>
                         </div>
                     </div>
-                    <!-- Scrollable Table Wrapper -->
+
                     <BaseTable :data="paginatedProduct" :columns="columns">
                         <template #actions="{ item }">
                             <button
@@ -397,7 +393,7 @@ onMounted(() => {
                             class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
                         >
                             <h3 class="text-xl font-semibold text-gray-900">
-                                {{ isEditing ? "Edit Product" : "New Product" }}
+                                {{ isEdting ? "Edit Product" : "New Product" }}
                             </h3>
                             <button
                                 type="button"
@@ -504,32 +500,6 @@ onMounted(() => {
                                     <div
                                         class="flex items-center p-5 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
                                     >
-                                        <!-- <div class="mt-2 max-w-xs">
-                                                <img
-                                                    v-if="currentData.image"
-                                                    :src="
-                                                        URL.createObjectURL(
-                                                            currentData.image
-                                                        )
-                                                    "
-                                                    alt="Preview"
-                                                    class="rounded"
-                                                />
-                                                <img
-                                                    v-else-if="
-                                                        currentData.imageUrl
-                                                    "
-                                                    :src="currentData.imageUrl"
-                                                    alt="Preview"
-                                                    class="rounded"
-                                                />
-                                                <img
-                                                    v-else
-                                                    src="/path/to/placeholder-image.png"
-                                                    alt="Placeholder"
-                                                    class="rounded opacity-50"
-                                                />
-                                            </div> -->
                                         <div class="mt-2 mr-3 max-w-xs">
                                             <img
                                                 v-if="imagePreview"
@@ -581,7 +551,6 @@ onMounted(() => {
                                             id="default-input"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                         />
-                                        <!-- Display sub_title errors -->
                                         <ul
                                             v-if="errors"
                                             class="text-red-500 text-sm mt-1"
@@ -619,7 +588,6 @@ onMounted(() => {
                                             <option value="XXL">XXL</option>
                                         </select>
 
-                                        <!-- Display sub_title errors -->
                                         <ul
                                             v-if="errors"
                                             class="text-red-500 text-sm mt-1"
@@ -648,7 +616,6 @@ onMounted(() => {
                                             id="default-input"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                         />
-                                        <!-- Display sub_title errors -->
                                         <ul
                                             v-if="errors"
                                             class="text-red-500 text-sm mt-1"
